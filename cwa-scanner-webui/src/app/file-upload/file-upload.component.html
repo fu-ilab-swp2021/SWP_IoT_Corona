@@ -1,1 +1,9 @@
-<p>file-upload works!</p>
+<div class="upload-form">
+    <mat-form-field appearance="outline">
+      <ngx-mat-file-input [formControl]="fileControl"> </ngx-mat-file-input>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="upload()">Upload</button>
+</div>
+<div style="display: block">
+  <canvas #cwa_chart mdbChart></canvas>
+</div>
