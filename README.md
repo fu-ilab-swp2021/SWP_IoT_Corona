@@ -17,7 +17,7 @@ Als Peripheriegeräte werden ein SD-Kartenleser und ein kleines Display an die B
 
 ## Benutzung ##
 
-Bis jetzt existieren noch keine ausfühbaren Dateien. Um das Projekt zu klonen sollte
+Um das Projekt zu klonen sollte
 `git clone --recurse-submodules REPOSITORY` genutzt werden, um den RIOT-OS Ordner
 heruenterzuladen. Alternativ kann mit `git submodule init` die lokale
 Konfigurationsdatei initialisiert, und mit `git submodule update` die Daten herunter
@@ -25,8 +25,32 @@ geladen werden.
 
 ## Build ##
 
-Bis jetzt gibt es noch nicht zu bauen.
-
+### Scanner ###
+Voraussetzung: [Vagrant](https://www.vagrantup.com/downloads) installiert.
+* ```
+  vagrant up
+  ```
+* ```
+  vagrant ssh
+  ```
+* Beim ersten mal:
+  - [JLink](https://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack) für Linux, DEB installer, Version >=6.80 unter `J-Link Software and Documentation Pack` herunterladen. Installieren mit
+    ```
+    sudo dpkg -i /path/to/jlink_xxx.deb
+    ```
+  - ```
+    pip3 install pyserial
+    ```
+* ```
+  cd SWP_IoT_Corona/ricorder
+  ```
+* Nordic-Board per USB anschließen und anschalten
+* ```
+  make all
+  ```
+* ```
+  make flash BOARD=nrf52dk
+  ```
 ## Lizenz ##
 
 Keine Ahnung? RIOT nutzt LGPL, glaube ich. Vielleicht können wir da einfach mal nachfragen.
