@@ -1,3 +1,13 @@
-<mat-toolbar color="primary" style="justify-content: center;">
-  CWA Scanner Web UI
+<mat-toolbar color="primary" class="main-toolbar">
+  <button mat-raised-button color="basic" routerLink="">
+    <mat-icon>home</mat-icon>
+  </button>
+  <div class="flex-spacer"></div>
+  <span>CWA Scanner Web UI</span>
+  <div class="flex-spacer"></div>
+  <button mat-raised-button color="accent" routerLink="swagger-ui" style="margin-right: 10px;">
+    <mat-icon>double_arrow</mat-icon>
+    API
+  </button>
 </mat-toolbar>
+<router-outlet></router-outlet>
