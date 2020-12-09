@@ -1,2 +1,4 @@
 Flask
 waitress
+flask_swagger
+flask_cors

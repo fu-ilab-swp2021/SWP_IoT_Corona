@@ -59,6 +59,7 @@ Voraussetzung: [Python](https://www.python.org/downloads/release/python-391/) un
   - Angular CLI installieren.
     ```
     npm install -g @angular/cli
+    npm install
     ```
   - Python dependencies installieren
     ```
