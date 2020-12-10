@@ -9,3 +9,19 @@
         margin-bottom: 18px;
     }
 }
+
+.chart-map-container {
+    display: flex;
+    width: 100vw;
+    height: 600px;
+    justify-content: space-around;
+    .chart-container {
+        width: 45%;
+        height: 100%;
+    }
+
+    .maps-container {
+        width: 45%;
+        height: 100%;
+    }
+}

@@ -5,6 +5,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from .tools.util.adparser import ADParser
 from werkzeug.utils import secure_filename
+import numpy as np
 
 class Server():
 
@@ -61,5 +62,10 @@ class Server():
             file = request.files['fileKey']
             s = file.read().decode("utf-8")
             res = ADParser(s, fromfile=False)
-            p = res.getPkt()
-            return jsonify(p), 200
+            ps = res.getPkts()
+            for p in ps:
+                p['location'] = {
+                    "lat": 52.4403357+np.random.rand()-0.5,
+                    "lng": 13.2416195+np.random.rand()-0.5
+                }
+            return jsonify(ps), 200

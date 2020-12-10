@@ -131,7 +131,7 @@ class ADParser():
         for pkt in self.pkts:
             print(pkt.raw, end="")
     
-    def getPkt(self):
+    def getPkts(self):
         return [p.toJson() for p in self.pkts]
 
     def filter_cwa(self):

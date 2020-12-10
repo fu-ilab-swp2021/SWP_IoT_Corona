@@ -15,6 +15,8 @@ import { FileUploadComponent } from './file-upload/file-upload.component';
 import { NgxMatFileInputModule } from '@angular-material-components/file-input';
 import { ChartsModule, MDBBootstrapModule } from 'angular-bootstrap-md';
 import { HttpClientModule } from '@angular/common/http';
+import { AgmCoreModule } from '@agm/core';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 @NgModule({
   declarations: [
@@ -37,6 +39,10 @@ import { HttpClientModule } from '@angular/common/http';
     MDBBootstrapModule.forRoot(),
     ChartsModule,
     HttpClientModule,
+    AgmCoreModule.forRoot({
+      apiKey: 'AIzaSyCdTfIec7tel-8LtwjDfueUOlE3TCWoyrY'+'&libraries=visualization'
+    }),
+    NgxChartsModule
   ],
   providers: [],
   bootstrap: [AppComponent],

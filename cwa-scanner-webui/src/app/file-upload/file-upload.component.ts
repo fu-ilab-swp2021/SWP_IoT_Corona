@@ -2,13 +2,13 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ElementRef,
   OnInit,
   ViewChild,
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import * as Chart from 'chart.js';
+import { LineChartComponent } from '@swimlane/ngx-charts';
 import { HttpService } from '../http.service';
+import { CwaPacket } from '../models/cwa-packet.model';
 
 @Component({
   selector: 'app-file-upload',
@@ -16,46 +16,47 @@ import { HttpService } from '../http.service';
   styleUrls: ['./file-upload.component.scss'],
 })
 export class FileUploadComponent implements OnInit, AfterViewInit {
-  fileControl = new FormControl();
-  @ViewChild('cwa_chart') chartEl: ElementRef;
-  chart: Chart;
-  file: File;
-  data;
-  chartType = 'line';
-  chartDatasets: Chart.ChartDataSets[] = [
-    {
-      data: [],
-      label: 'CWA Packets',
-      backgroundColor: 'rgba(105, 0, 132, .2)',
-      borderColor: 'rgba(200, 99, 132, .7)',
-      borderWidth: 2,
-    },
-  ];
-  chartLabels: Array<any> = [];
-  chartOptions: Chart.ChartConfiguration = {
-    type: this.chartType,
-    options: {
-      scales: {
-        xAxes: [{
-          scaleLabel: {
-            display: true,
-            labelString: 'Time'
-          }
-        }],
-        yAxes: [{
-          scaleLabel: {
-            display: true,
-            labelString: 'RSSI'
-          }
-        }],
-      }
-    }
+  lat = 52.4403357;
+  lng = 13.2416195;
+  zoom = 8;
+  noData = true;
+  legend: boolean = true;
+  showLabels: boolean = true;
+  animations: boolean = true;
+  xAxis: boolean = true;
+  yAxis: boolean = true;
+  showYAxisLabel: boolean = true;
+  showXAxisLabel: boolean = true;
+  xAxisLabel: string = 'Time';
+  yAxisLabel: string = 'RSSI';
+  timeline: boolean = true;
+  colorScheme = {
+    domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5'],
   };
+  map: google.maps.Map = null;
+  heatmap: google.maps.visualization.HeatmapLayer = null;
+  fileControl = new FormControl();
+  @ViewChild('ngx_chart') chart: LineChartComponent;
+  file: File;
+  data: CwaPacket[];
+  ngxData = [];
 
   constructor(
     private httpService: HttpService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  onSelect(data): void {
+    console.log('Item clicked', JSON.parse(JSON.stringify(data)));
+  }
+
+  onActivate(data): void {
+    console.log('Activate', JSON.parse(JSON.stringify(data)));
+  }
+
+  onDeactivate(data): void {
+    console.log('Deactivate', JSON.parse(JSON.stringify(data)));
+  }
 
   ngOnInit(): void {
     this.fileControl.valueChanges.subscribe((file) => {
@@ -63,28 +64,54 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngAfterViewInit() {
-  }
+  ngAfterViewInit() {}
 
   upload() {
     this.httpService.uploadFile(this.file).subscribe(
       (d: any[]) => {
-        this.chart = new Chart(this.chartEl.nativeElement, this.chartOptions);
+        this.noData = false;
         this.data = d.slice(0, 100);
-        this.cdr.detectChanges();
-        this.chartDatasets[0].data = this.data.map((p) => p.rssi);
-        this.chartLabels = this.data.map((p) => p.time);
-        this.chart.data = {
-          datasets: this.chartDatasets,
-          labels: this.chartLabels,
-        };
-        this.chart.update();
+        this.ngxData = [];
+        for (const p of this.data) {
+          let s = this.ngxData.find((p2) => p2.name === p.addr);
+          if (!s) {
+            s = {
+              name: p.addr,
+              series: [],
+            };
+            this.ngxData.push(s);
+          }
+          s.series.push({
+            value: p.rssi,
+            name: p.time,
+          });
+        }
+        this.ngxData = [...this.ngxData];
+        if (this.map) {
+          this.heatmap.setMap(null);
+          this.heatmap = new google.maps.visualization.HeatmapLayer({
+            map: this.map,
+            data: this.data.map(
+              (p) => new google.maps.LatLng(p.location.lat, p.location.lng)
+            ),
+            radius: 30,
+          });
+        }
       },
       (e) => {
         console.error(e);
       }
     );
   }
-  chartClicked(e: any): void {}
-  chartHovered(e: any): void {}
+
+  onMapLoad(mapInstance: google.maps.Map) {
+    this.map = mapInstance;
+    this.heatmap = new google.maps.visualization.HeatmapLayer({
+      map: this.map,
+      data: this.data.map(
+        (p) => new google.maps.LatLng(p.location.lat, p.location.lng)
+      ),
+      radius: 30,
+    });
+  }
 }

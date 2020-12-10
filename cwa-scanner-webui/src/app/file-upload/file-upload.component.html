@@ -1,9 +1,36 @@
 <div class="upload-form">
-    <mat-form-field appearance="outline">
-      <ngx-mat-file-input [formControl]="fileControl"> </ngx-mat-file-input>
-    </mat-form-field>
-    <button mat-raised-button color="primary" (click)="upload()">Upload</button>
+  <mat-form-field appearance="outline">
+    <ngx-mat-file-input [formControl]="fileControl"> </ngx-mat-file-input>
+  </mat-form-field>
+  <button mat-raised-button color="primary" (click)="upload()">Upload</button>
 </div>
-<div style="display: block">
-  <canvas #cwa_chart mdbChart></canvas>
+<div class="chart-map-container">
+  <div class="chart-container">
+    <ngx-charts-line-chart #ngx_chart
+      [scheme]="colorScheme"
+      [legend]="legend"
+      [showXAxisLabel]="showXAxisLabel"
+      [showYAxisLabel]="showYAxisLabel"
+      [xAxis]="xAxis"
+      [yAxis]="yAxis"
+      [xAxisLabel]="xAxisLabel"
+      [yAxisLabel]="yAxisLabel"
+      [timeline]="timeline"
+      [results]="ngxData"
+      (select)="onSelect($event)"
+      (activate)="onActivate($event)"
+      (deactivate)="onDeactivate($event)"
+    >
+    </ngx-charts-line-chart>
+  </div>
+  <div class="maps-container" *ngIf="!noData">
+    <agm-map
+      [latitude]="lat"
+      [longitude]="lng"
+      style="height: 100%; width: 100%"
+      [zoom]="zoom"
+      (mapReady)="onMapLoad($event)"
+    >
+    </agm-map>
+  </div>
 </div>
