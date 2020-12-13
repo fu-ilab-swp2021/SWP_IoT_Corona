@@ -19,11 +19,7 @@ import { AgmCoreModule } from '@agm/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    SwaggerUiComponent,
-    FileUploadComponent
-  ],
+  declarations: [AppComponent, SwaggerUiComponent, FileUploadComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -40,12 +36,13 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     ChartsModule,
     HttpClientModule,
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyCdTfIec7tel-8LtwjDfueUOlE3TCWoyrY'+'&libraries=visualization'
+      apiKey:
+        'AIzaSyCdTfIec7tel-8LtwjDfueUOlE3TCWoyrY' + '&libraries=visualization',
     }),
-    NgxChartsModule
+    NgxChartsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
-  schemas: [NO_ERRORS_SCHEMA]
+  schemas: [NO_ERRORS_SCHEMA],
 })
-export class AppModule { }
+export class AppModule {}
