@@ -4,6 +4,7 @@ BOARD ?= nrf52dk
 
 DEVELHELP ?= 0
 QUIET ?= 1
+SETTIME ?= 0
 
 # enables shell and STDIO for debugging
 TERM ?= 1
@@ -30,9 +31,9 @@ USEMODULE += xtimer
 
 # enable shell when in debugging mode
 # ifeq (1,$(TERM))
-#   USEMODULE += shell
-#   USEMODULE += shell_commands
-#   USEMODULE += ps
+USEMODULE += shell
+USEMODULE += shell_commands
+USEMODULE += ps
 # else
 #   USEMODULE += stdio_null
 # endif
@@ -61,5 +62,7 @@ ifeq (nrf52dk,$(BOARD))
   CFLAGS += -DSDCARD_SPI_PARAM_MOSI=GPIO_PIN\(0,23\)
   CFLAGS += -DSDCARD_SPI_PARAM_MISO=GPIO_PIN\(0,24\)
 endif
+
+CFLAGS += -DSETTIME=$(SETTIME)
 
 include $(RIOTBASE)/Makefile.include
