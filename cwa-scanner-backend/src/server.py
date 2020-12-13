@@ -65,7 +65,7 @@ class Server():
             ps = res.getPkts()
             for p in ps:
                 p['location'] = {
-                    "lat": 52.4403357+np.random.rand()-0.5,
-                    "lng": 13.2416195+np.random.rand()-0.5
+                    "lat": 52.4403357+(np.random.rand()-0.5)/10,
+                    "lng": 13.2416195+(np.random.rand()-0.5)/10
                 }
             return jsonify(ps), 200
