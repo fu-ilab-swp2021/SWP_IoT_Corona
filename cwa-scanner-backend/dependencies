@@ -1,0 +1,5 @@
+Flask
+waitress
+flask_swagger
+flask_cors
+numpy==1.19.3

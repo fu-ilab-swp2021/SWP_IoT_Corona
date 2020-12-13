@@ -51,6 +51,36 @@ Voraussetzung: [Vagrant](https://www.vagrantup.com/downloads) installiert.
 * ```
   make flash BOARD=nrf52dk
   ```
+
+### Web-UI
+
+Voraussetzung: [Python](https://www.python.org/downloads/release/python-391/) und [NPM/NodeJS](https://nodejs.org/en/download/) installiert.
+* Beim ersten mal:
+  - Angular CLI installieren.
+    ```
+    npm install -g @angular/cli
+    npm install
+    ```
+  - Python dependencies installieren
+    ```
+    pip3 install -r cwa-scanner-backend/dependencies 
+    ```
+* ```
+  cd cwa-scanner-backend
+  ```
+* ```
+  python3 main.py
+  ```
+* Zweites Terminal öffnen
+* ```
+  cd cwa-scanner-webui
+  ```
+* ```
+  ng serve
+  ```
+* Im Browser [http://localhost:4200](http://localhost:4200) öffnen
+* Log-Datei von der SD-Karte hochladen und mit `Upload` bestätigen.
+* Es sollte sich eine Grafik öffnen
 ## Lizenz ##
 
 Keine Ahnung? RIOT nutzt LGPL, glaube ich. Vielleicht können wir da einfach mal nachfragen.
