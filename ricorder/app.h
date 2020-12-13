@@ -35,8 +35,11 @@ typedef struct {
 } scanner_stats_t;
 
 int wallclock_init(void);
+int wallclock_set_time(double time);
 void wallclock_now(uint32_t *secs, uint32_t *msecs);
 struct tm *wallclock_time(void);
+struct tm *wallclock_time_local(void);
+int wallclock_wait_for_settime(void);
 
 int scanner_init(void);
 void scanner_getcount(scanner_stats_t *stats);

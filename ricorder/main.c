@@ -19,6 +19,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "shell.h"
 #include "thread.h"
@@ -26,22 +27,40 @@
 
 #include "app.h"
 
-#define UPDATE_DELAY        (1000 * US_PER_MS)
-#define SHELL_PRIO          (THREAD_PRIORITY_MAIN + 1)
+#define UPDATE_DELAY (1000 * US_PER_MS)
+#define SHELL_PRIO (THREAD_PRIORITY_MAIN + 1)
 
-
-#define ENABLE_DEBUG    1
+#define ENABLE_DEBUG 1
 #include "debug.h"
 
 #if IS_USED(MODULE_SHELL)
 static char _stack[THREAD_STACKSIZE_DEFAULT];
+
+int settime(int argc, char **argv) {
+    (void)argc;
+    double t = atof(argv[1]);
+    int res = wallclock_set_time(t);
+    if (res != 0) {
+        printf("Time could not be set!");
+        return res;
+    } else {
+        printf("Time was set!");
+    }
+    return 0;
+}
+
+static const shell_command_t commands[] = {
+#if SETTIME == 1
+    {"settime", "print some shit", settime}
+#endif
+};
 
 static void *_shell_thread(void *arg)
 {
     (void)arg;
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
+    shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
     return NULL;
 }
 
@@ -54,6 +73,16 @@ static void _start_shell(void)
 
 int main(void)
 {
+    /* run the shell if compiled in */
+#if IS_USED(MODULE_SHELL)
+    _start_shell();
+#endif
+
+#if SETTIME == 1
+    wallclock_wait_for_settime();
+    exit(0);
+#endif
+
     int res;
 
     /* start user interface */
@@ -94,11 +123,6 @@ int main(void)
         puts("BLE:       OK");
         ui_boot_msg("BLE:       OK");
     }
-
-    /* run the shell if compiled in */
-#if IS_USED(MODULE_SHELL)
-    _start_shell();
-#endif
 
     /* run the update loop */
     xtimer_ticks32_t last_wakeup = xtimer_now();

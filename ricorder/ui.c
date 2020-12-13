@@ -105,7 +105,7 @@ void ui_update(void)
 {
     scanner_stats_t stats;
     scanner_getcount(&stats);
-    struct tm *time = wallclock_time();
+    struct tm *time = wallclock_time_local();
 
     char pkt_str[12];
     size_t pos = fmt_u32_dec(pkt_str, stats.pkt_cnt);
@@ -121,9 +121,7 @@ void ui_update(void)
 
 
     u8g2_FirstPage(&_disp);
-    printf("Date: %s\n",time_str);
-    printf("# Pkts: %s\n",pkt_str);
-    printf(" # CWA: %s\n",cwa_str);
+    DEBUG("%s | %s | %s\n",time_str,pkt_str,cwa_str); 
     do {
         u8g2_DrawStr(&_disp, 0, 10, time_str);
         u8g2_DrawStr(&_disp, 0, 21, "# Pkts:");
