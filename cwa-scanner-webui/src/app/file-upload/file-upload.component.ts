@@ -20,16 +20,16 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
   lng = 13.2416195;
   zoom = 8;
   noData = true;
-  legend: boolean = true;
-  showLabels: boolean = true;
-  animations: boolean = true;
-  xAxis: boolean = true;
-  yAxis: boolean = true;
-  showYAxisLabel: boolean = true;
-  showXAxisLabel: boolean = true;
-  xAxisLabel: string = 'Time';
-  yAxisLabel: string = 'RSSI';
-  timeline: boolean = true;
+  legend = true;
+  showLabels = true;
+  animations = true;
+  xAxis = true;
+  yAxis = true;
+  showYAxisLabel = true;
+  showXAxisLabel = true;
+  xAxisLabel = 'Time';
+  yAxisLabel = 'RSSI';
+  timeline = true;
   colorScheme = {
     domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5'],
   };
@@ -66,6 +66,10 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {}
 
+  formatXAxisLabel(value: Date) {
+    return value.toLocaleTimeString();
+  }
+
   upload() {
     this.httpService.uploadFile(this.file).subscribe(
       (d: any[]) => {
@@ -83,7 +87,7 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
           }
           s.series.push({
             value: p.rssi,
-            name: p.time,
+            name: new Date(p.time * 1000),
           });
         }
         this.ngxData = [...this.ngxData];
