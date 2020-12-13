@@ -145,3 +145,22 @@ The following scripts can be used:
                  address, and payload are identical to an entry already recorded
                  in the logs.
 - `plt_devices.py`: plots the number of recorded packets per time interval
+
+## Setting the time
+
+You can set the time as follows:
+* ```
+  make all flash SETTIME=1
+  ```
+* ```
+  ./tools/settime.sh
+  ```
+* Enter
+  ```
+  settime
+  ```
+* Exit the console
+* Recompile with
+  ```
+  make all flash
+  ```

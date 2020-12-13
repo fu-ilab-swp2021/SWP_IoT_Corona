@@ -41,7 +41,7 @@ static const struct ble_gap_disc_params _scan_params = {
     .filter_duplicates = 0,
 };
 
-static char _tmp[200];
+static char _tmp[250];
 
 static scanner_stats_t _stats;
 
