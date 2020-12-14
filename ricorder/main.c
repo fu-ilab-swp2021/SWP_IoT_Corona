@@ -27,6 +27,11 @@
 
 #include "app.h"
 
+// Additional imports for Button handling
+#include "board.h"
+#include "board_common.h"
+#include "periph/gpio.h"
+
 #define UPDATE_DELAY (1000 * US_PER_MS)
 #define SHELL_PRIO (THREAD_PRIORITY_MAIN + 1)
 
@@ -122,6 +127,20 @@ int main(void)
     else {
         puts("BLE:       OK");
         ui_boot_msg("BLE:       OK");
+    }
+
+    // Ask user to press Button 1 to start scanning 
+    gpio_init(LED0_PIN, GPIO_OUT);
+    gpio_init(BTN0_PIN, BTN0_MODE);
+    while(1)
+    {
+        if(gpio_read(BTN0_PIN) == 1)
+        {
+            ui_boot_msg("Press Button 1 to start scanning.");
+        } else
+        {
+            break;
+        }
     }
 
     /* run the update loop */
