@@ -17,9 +17,14 @@ import { ChartsModule, MDBBootstrapModule } from 'angular-bootstrap-md';
 import { HttpClientModule } from '@angular/common/http';
 import { AgmCoreModule } from '@agm/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
+import { RssiLinechartMapComponent } from './rssi-linechart-map/rssi-linechart-map.component';
+import {MatMenuModule} from '@angular/material/menu';
 
 @NgModule({
-  declarations: [AppComponent, SwaggerUiComponent, FileUploadComponent],
+  declarations: [AppComponent, SwaggerUiComponent, FileUploadComponent, PpmLinechartComponent, RssiLinechartMapComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -32,6 +37,9 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     ReactiveFormsModule,
     MatInputModule,
     NgxMatFileInputModule,
+    MatSidenavModule,
+    MatListModule,
+    MatMenuModule,
     MDBBootstrapModule.forRoot(),
     ChartsModule,
     HttpClientModule,

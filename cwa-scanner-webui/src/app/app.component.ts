@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { DataService } from './services/data.service';
 
 @Component({
   selector: 'app-root',
@@ -6,7 +8,21 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  title = 'cwa-scanner-webui';
+
+  @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
+
+  get dataFiles() {
+    return this.dataService.getDataFiles();
+  }
+
+  constructor(private dataService: DataService) {}
 
   ngOnInit() {}
+
+  deleteData(name) {
+    this.dataService.deleteDataFile(name);
+    if (this.dataFiles?.length < 1) {
+      this.menuTrigger.closeMenu();
+    }
+  }
 }

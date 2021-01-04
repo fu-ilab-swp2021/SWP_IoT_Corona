@@ -1,13 +1,50 @@
-<mat-toolbar color="primary" class="main-toolbar">
-  <button mat-raised-button color="basic" routerLink="">
-    <mat-icon>home</mat-icon>
-  </button>
-  <div class="flex-spacer"></div>
-  <span>CWA Scanner Web UI</span>
-  <div class="flex-spacer"></div>
-  <button mat-raised-button color="accent" routerLink="swagger-ui" style="margin-right: 10px;">
-    <mat-icon>double_arrow</mat-icon>
-    API
-  </button>
-</mat-toolbar>
-<router-outlet></router-outlet>
+<mat-drawer-container class="drawer-container">
+  <mat-drawer #drawer mode="side">
+    <mat-toolbar color="primary" class="main-toolbar">
+      <button mat-raised-button color="basic" routerLink="">
+        <mat-icon>home</mat-icon>
+      </button>
+    </mat-toolbar>
+    <mat-nav-list role="list" class="menu-list" [multiple]="false">
+      <a mat-list-item routerLink="ppm-linechart" routerLinkActive="active-link">
+        <mat-icon mat-list-icon>show_chart</mat-icon>
+        Packets per minute
+      </a>
+      <a mat-list-item routerLink="rssi-linechart-map" routerLinkActive="active-link">
+        <mat-icon mat-list-icon>place</mat-icon>
+        RSSI over time & map
+      </a>
+    </mat-nav-list>
+  </mat-drawer>
+
+  <mat-toolbar color="primary" class="main-toolbar">
+    <button mat-icon-button (click)="drawer.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div class="flex-spacer"></div>
+    <span>CWA Scanner Web UI</span>
+    <div class="flex-spacer"></div>
+    <button mat-raised-button #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="menu" style="margin-right: 10px" [disabled]="dataFiles?.length < 1">
+      Uploaded data
+      <mat-icon>list</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <div (click)="$event.stopPropagation();$event.preventDefault();">
+        <button mat-menu-item *ngFor="let d of dataFiles">
+          <mat-icon (click)="deleteData(d.name)">cancel</mat-icon>
+          {{d.name}}
+        </button>
+      </div>
+    </mat-menu>
+    <button
+      mat-raised-button
+      color="accent"
+      routerLink="swagger-ui"
+      style="margin-right: 10px"
+    >
+      <mat-icon>double_arrow</mat-icon>
+      API
+    </button>
+  </mat-toolbar>
+  <router-outlet></router-outlet>
+</mat-drawer-container>
