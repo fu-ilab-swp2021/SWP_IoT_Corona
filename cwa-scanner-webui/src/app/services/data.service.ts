@@ -1,36 +1,81 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
 import { CwaPacket } from '../models/cwa-packet.model';
+import { HttpService } from './http.service';
+import { flatMap, map, tap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
 
-interface UploadedDataItem {
+export enum AGGREGATION_TYPES {
+  ppm = 'packets_per_minute'
+}
+export interface UploadedDataItem {
   data: CwaPacket[];
   name: string;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DataService {
-
   dataFiles: UploadedDataItem[] = [];
-  dataChanged: Subject<UploadedDataItem[]> = new Subject();
+  filenames: string[] = [];
+  initialData = false;
+  initialData$ = new Subject();
 
-  constructor() { }
+  constructor(private httpService: HttpService) {}
 
   addDataFile(file: CwaPacket[], filename: string) {
-    this.dataFiles.push({
-      data: file,
-      name: filename
-    });
-    this.dataChanged.next(this.dataFiles);
+    if (!this.dataFiles.find(df => df.name === filename)) {
+      this.dataFiles.push({
+        data: file,
+        name: filename,
+      });
+    }
   }
 
   getDataFiles() {
     return this.dataFiles;
   }
 
+  updateDataFilesObs() {
+    return this.getFilenamesRemote().pipe(
+      map((filenames) => {
+        const newFile = !filenames.every((f) => this.filenames.includes(f));
+        this.filenames = filenames;
+        if (newFile) {
+          return this.httpService.getDataFiles().pipe(map((dataFiles) => {
+            this.dataFiles = dataFiles;
+            return this.dataFiles;
+          }));
+        } else {
+          return of(this.dataFiles);
+        }
+      }),
+      flatMap(v => v)
+    );
+  }
+
+  updateDataFiles() {
+    this.updateDataFilesObs().subscribe();
+  }
+
+  getFilenamesRemote() {
+    return this.httpService.getFilenames();
+  }
+  updateFilenames() {
+    return this.httpService.getFilenames().subscribe((filenames) => {
+      this.filenames = filenames;
+    });
+  }
+
   deleteDataFile(name) {
-    this.dataFiles = this.dataFiles.filter(d => d.name !== name);
-    this.dataChanged.next(this.dataFiles);
+    return this.httpService.deleteDatafile(name).pipe(tap(() => {
+      this.dataFiles = this.dataFiles.filter((d) => d.name !== name);
+    }, (error) => {
+      console.error(error);
+    }));
+  }
+
+  getAggregatedData(aggregationType) {
+    return this.httpService.getAggregatedData(aggregationType, this.filenames);
   }
 }

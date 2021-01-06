@@ -22,6 +22,8 @@
 
 
 import os
+from os import listdir
+from os.path import isfile, join
 import re
 import sys
 import argparse
@@ -186,3 +188,35 @@ class ADParser():
             if len(itvl) > 0:
                 print("  itvl: {:.2f}s / {:.2f}s / {:.2f}s".format(
                         min(itvl), max(itvl), (sum(itvl) / len(itvl))))
+
+def readData(path, files):
+    data = []
+    try:
+        for filename in files:
+            p = join(path, filename+".json")
+            f = open(p, "r")
+            s = f.read()
+            f.close()
+            data.append(json.loads(s))
+        return data
+    except Exception as e:
+        print(e)
+        return []
+
+def packets_per_minute(path, files):
+    data = readData(path, files)
+    ppm = {}
+    for ps in data:
+        for p in ps:
+            t = int(p["time"] - p["time"]%60)
+            if t not in ppm:
+                ppm[t] = 1
+            else:
+                ppm[t] += 1
+    return ppm
+
+def aggregate(aggregation_type, path, files):
+    f = None
+    if aggregation_type == "packets_per_minute":
+        f = packets_per_minute
+    return f(path, files) if f is not None else []

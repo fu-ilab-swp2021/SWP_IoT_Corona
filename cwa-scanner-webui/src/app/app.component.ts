@@ -15,14 +15,24 @@ export class AppComponent implements OnInit {
     return this.dataService.getDataFiles();
   }
 
-  constructor(private dataService: DataService) {}
+  constructor(public dataService: DataService) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataService.updateDataFilesObs().subscribe(() => {
+      this.dataService.initialData = true;
+      this.dataService.initialData$.next(true);
+    });
+  }
 
   deleteData(name) {
-    this.dataService.deleteDataFile(name);
-    if (this.dataFiles?.length < 1) {
-      this.menuTrigger.closeMenu();
-    }
+    this.dataService.deleteDataFile(name).subscribe(() => {
+      this.dataService.updateDataFiles();
+    }, () => {
+      this.dataService.updateDataFiles();
+    });
+  }
+
+  updateFilenames() {
+    this.dataService.updateFilenames();
   }
 }

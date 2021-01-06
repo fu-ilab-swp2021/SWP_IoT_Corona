@@ -5,7 +5,7 @@ import {
   OnInit
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { HttpService } from '../http.service';
+import { HttpService } from '../services/http.service';
 import { CwaPacket } from '../models/cwa-packet.model';
 import { DataService } from '../services/data.service';
 
@@ -45,6 +45,7 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
     this.httpService.uploadFile(this.file).subscribe(
       (d: CwaPacket[]) => {
         this.dataService.addDataFile(d, this.file.name);
+        this.dataService.updateDataFiles();
       },
       (e) => {
         console.error(e);

@@ -24,15 +24,18 @@
     <div class="flex-spacer"></div>
     <span>CWA Scanner Web UI</span>
     <div class="flex-spacer"></div>
-    <button mat-raised-button #menuTrigger="matMenuTrigger" [matMenuTriggerFor]="menu" style="margin-right: 10px" [disabled]="dataFiles?.length < 1">
+    <button mat-raised-button #menuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="menu" style="margin-right: 10px">
       Uploaded data
       <mat-icon>list</mat-icon>
     </button>
     <mat-menu #menu="matMenu">
       <div (click)="$event.stopPropagation();$event.preventDefault();">
-        <button mat-menu-item *ngFor="let d of dataFiles">
-          <mat-icon (click)="deleteData(d.name)">cancel</mat-icon>
-          {{d.name}}
+        <button mat-menu-item *ngIf="!dataService.filenames || dataService.filenames.length < 1">
+          No files uploaded
+        </button>
+        <button mat-menu-item *ngFor="let f of dataService.filenames">
+          <mat-icon (click)="deleteData(f)">cancel</mat-icon>
+          {{f}}
         </button>
       </div>
     </mat-menu>

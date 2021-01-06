@@ -1,13 +1,13 @@
 import {
   AfterViewInit,
-
   Component,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { CwaPacket } from '../models/cwa-packet.model';
 import { DataService } from '../services/data.service';
 
@@ -25,7 +25,8 @@ interface ChartSeries {
   templateUrl: './rssi-linechart-map.component.html',
   styleUrls: ['./rssi-linechart-map.component.scss'],
 })
-export class RssiLinechartMapComponent implements OnInit, AfterViewInit, OnDestroy {
+export class RssiLinechartMapComponent
+  implements OnInit, AfterViewInit, OnDestroy {
   lat = 52.4403357;
   lng = 13.2416195;
   zoom = 12;
@@ -56,9 +57,7 @@ export class RssiLinechartMapComponent implements OnInit, AfterViewInit, OnDestr
   colors;
   dataSubscription: Subscription;
 
-  constructor(
-    private dataService: DataService
-  ) {}
+  constructor(private dataService: DataService) {}
 
   onSelect(data: any): void {
     const p = this.chartData.find((pp) => pp.name === data);
@@ -91,8 +90,16 @@ export class RssiLinechartMapComponent implements OnInit, AfterViewInit, OnDestr
   // }
 
   ngOnInit(): void {
-    this.newDataFromService(this.dataService.dataFiles);
-    this.dataSubscription = this.dataService.dataChanged.subscribe(this.newDataFromService.bind(this));
+    if (this.dataService.initialData) {
+      this.dataService.updateDataFilesObs().subscribe(dataFiles => {
+        this.newDataFromService(dataFiles);
+      });
+    } else {
+      this.dataService.initialData$.pipe(take(1)).subscribe(() => {
+        this.newDataFromService(this.dataService.dataFiles);
+      });
+    }
+    // this.dataSubscription = this.dataService.dataChanged.subscribe(this.newDataFromService.bind(this));
   }
 
   ngOnDestroy() {
@@ -140,7 +147,7 @@ export class RssiLinechartMapComponent implements OnInit, AfterViewInit, OnDestr
 
   dataChanged(d: CwaPacket[]) {
     this.noData = false;
-    this.data = d.slice(0, 100);
+    this.data = d;
     this.chartData = [];
     for (const p of this.data) {
       let s = this.chartData.find((p2) => p2.name === p.addr);
