@@ -21,10 +21,23 @@ import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { RssiLinechartMapComponent } from './rssi-linechart-map/rssi-linechart-map.component';
-import {MatMenuModule} from '@angular/material/menu';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSliderModule } from '@angular/material/slider';
+import { FileUploadDialogComponent } from './file-upload/file-upload-dialog.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
-  declarations: [AppComponent, SwaggerUiComponent, FileUploadComponent, PpmLinechartComponent, RssiLinechartMapComponent],
+  declarations: [
+    AppComponent,
+    SwaggerUiComponent,
+    FileUploadComponent,
+    PpmLinechartComponent,
+    FileUploadDialogComponent,
+    RssiLinechartMapComponent,
+    HomeComponent,
+  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -40,6 +53,9 @@ import {MatMenuModule} from '@angular/material/menu';
     MatSidenavModule,
     MatListModule,
     MatMenuModule,
+    MatDialogModule,
+    MatCardModule,
+    MatSliderModule,
     MDBBootstrapModule.forRoot(),
     ChartsModule,
     HttpClientModule,

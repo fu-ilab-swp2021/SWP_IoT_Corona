@@ -8,7 +8,7 @@ import {
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { CwaPacket } from '../models/cwa-packet.model';
+import { BlePacket } from '../models/cwa-packet.model';
 import { DataService } from '../services/data.service';
 
 interface ChartSeries {
@@ -50,7 +50,7 @@ export class RssiLinechartMapComponent
   map: google.maps.Map = null;
   heatmap: google.maps.visualization.HeatmapLayer = null;
   @ViewChild('ngx_chart') chart: LineChartComponent;
-  data: CwaPacket[];
+  data: BlePacket[];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
@@ -90,16 +90,8 @@ export class RssiLinechartMapComponent
   // }
 
   ngOnInit(): void {
-    if (this.dataService.initialData) {
-      this.dataService.updateDataFilesObs().subscribe(dataFiles => {
-        this.newDataFromService(dataFiles);
-      });
-    } else {
-      this.dataService.initialData$.pipe(take(1)).subscribe(() => {
-        this.newDataFromService(this.dataService.dataFiles);
-      });
-    }
-    // this.dataSubscription = this.dataService.dataChanged.subscribe(this.newDataFromService.bind(this));
+    this.newDataFromService(this.dataService.dataFiles);
+    this.dataSubscription = this.dataService.dataChanged.subscribe(this.newDataFromService.bind(this));
   }
 
   ngOnDestroy() {
@@ -140,12 +132,12 @@ export class RssiLinechartMapComponent
   }
 
   newDataFromService(dataFiles) {
-    let d: CwaPacket[] = [];
+    let d: BlePacket[] = [];
     dataFiles.forEach((f) => (d = d.concat(f.data)));
     this.dataChanged(d);
   }
 
-  dataChanged(d: CwaPacket[]) {
+  dataChanged(d: BlePacket[]) {
     this.noData = false;
     this.data = d;
     this.chartData = [];

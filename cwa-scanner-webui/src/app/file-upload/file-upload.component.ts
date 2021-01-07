@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { HttpService } from '../services/http.service';
-import { CwaPacket } from '../models/cwa-packet.model';
+import { BlePacket } from '../models/cwa-packet.model';
 import { DataService } from '../services/data.service';
 
 interface ChartSeries {
@@ -43,7 +43,7 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
 
   upload() {
     this.httpService.uploadFile(this.file).subscribe(
-      (d: CwaPacket[]) => {
+      (d: BlePacket[]) => {
         this.dataService.addDataFile(d, this.file.name);
         this.dataService.updateDataFiles();
       },

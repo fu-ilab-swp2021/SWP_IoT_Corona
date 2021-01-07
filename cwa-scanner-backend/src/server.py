@@ -235,6 +235,8 @@ class Server():
                           type: string
                     type:
                         type: string
+                    options:
+                        type: object
             parameters:
                 - name: Aggregation Request
                   in: body
@@ -255,6 +257,9 @@ class Server():
             body = json.loads(request.data)
             dataFiles = body["dataFiles"]
             aggregation_type = body["type"]
-            data = aggregate(aggregation_type, self.app.config["UPLOAD_PATH"], dataFiles)
+            options = None
+            if "options" in body:
+                options = body["options"]
+            data = aggregate(aggregation_type, self.app.config["UPLOAD_PATH"], dataFiles, options)
             return jsonify(data), 200
             

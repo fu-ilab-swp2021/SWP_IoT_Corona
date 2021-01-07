@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { CwaPacket } from '../models/cwa-packet.model';
+import { BlePacket } from '../models/cwa-packet.model';
 import { UploadedDataItem } from './data.service';
 
 @Injectable({
@@ -29,10 +29,11 @@ export class HttpService {
     });
   }
 
-  getAggregatedData(aggregationType, filenames) {
+  getAggregatedData(aggregationType, filenames, options?) {
     return this.http.post<any>('/api/aggregate-data', {
       dataFiles: filenames,
-      type: aggregationType
+      type: aggregationType,
+      options
     });
   }
 }

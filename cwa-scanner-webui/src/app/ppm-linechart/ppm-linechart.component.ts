@@ -1,14 +1,13 @@
 import {
   AfterViewInit,
-
   Component,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { PpmPacket } from '../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../services/data.service';
 
@@ -24,10 +23,11 @@ interface ChartSeries {
 @Component({
   selector: 'app-ppm-linechart',
   templateUrl: './ppm-linechart.component.html',
-  styleUrls: ['./ppm-linechart.component.scss']
+  styleUrls: ['./ppm-linechart.component.scss'],
 })
 export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   aggregationType = AGGREGATION_TYPES.ppm;
+  sliderFC = new FormControl(60);
   noData = true;
   legend = true;
   showLabels = true;
@@ -41,7 +41,7 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   timeline = true;
   autoScale = true;
   activeEntries: any[] = [];
-  colorScheme = 'vivid';
+  colorScheme = 'cool';
   @ViewChild('ngx_chart') chart: LineChartComponent;
   data: PpmPacket;
   chartData: ChartSeries[] = [];
@@ -49,9 +49,7 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   hideSeries: any[] = [];
   dataSubscription: Subscription;
 
-  constructor(
-    private dataService: DataService
-  ) {}
+  constructor(private dataService: DataService) {}
 
   onSelect(data: any): void {
     const p = this.chartData.find((pp) => pp.name === data);
@@ -79,17 +77,18 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.dataService.initialData) {
-      this.dataService.getAggregatedData(this.aggregationType).subscribe((data: PpmPacket) => {
+    this.dataService
+      .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
+      .subscribe((data: PpmPacket) => {
         this.newDataFromService(data);
       });
-    } else {
-      this.dataService.initialData$.pipe(take(1)).subscribe(() => {
-        this.dataService.getAggregatedData(this.aggregationType).subscribe((data: PpmPacket) => {
+    this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
+      this.dataService
+        .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
+        .subscribe((data: PpmPacket) => {
           this.newDataFromService(data);
         });
-      });
-    }
+    });
   }
 
   ngOnDestroy() {
@@ -125,18 +124,46 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   dataChanged(d: PpmPacket) {
     this.noData = false;
     this.data = d;
-    this.chartData = [{
-      name: 'Packets per minute',
-      series: [],
-      show: true,
-    }];
-    Object.keys(this.data).forEach(k => {
+    this.chartData = [
+      {
+        name: 'Total ackets per interval',
+        series: [],
+        show: true,
+      },
+      {
+        name: 'CWA packets per interval',
+        series: [],
+        show: true,
+      },
+      {
+        name: 'Non-CWA packets per interval',
+        series: [],
+        show: true,
+      },
+    ];
+    Object.keys(this.data).forEach((k) => {
       this.chartData[0].series.push({
         name: new Date(Number(k) * 1000),
-        value: this.data[k]
+        value: this.data[k].total,
+      });
+      this.chartData[1].series.push({
+        name: new Date(Number(k) * 1000),
+        value: this.data[k].cwa,
+      });
+      this.chartData[2].series.push({
+        name: new Date(Number(k) * 1000),
+        value: this.data[k].non_cwa,
       });
     });
     this.chartData = [...this.chartData];
     this.chartDataCopy = this.copyData(this.chartData);
+  }
+
+  changeInterval(interval: number) {
+    this.dataService
+      .getAggregatedData(this.aggregationType, {interval})
+      .subscribe((data: PpmPacket) => {
+        this.newDataFromService(data);
+      });
   }
 }

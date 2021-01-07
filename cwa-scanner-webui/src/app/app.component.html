@@ -1,18 +1,12 @@
 <mat-drawer-container class="drawer-container">
   <mat-drawer #drawer mode="side">
     <mat-toolbar color="primary" class="main-toolbar">
-      <button mat-raised-button color="basic" routerLink="">
-        <mat-icon>home</mat-icon>
-      </button>
+      Visualizations
     </mat-toolbar>
     <mat-nav-list role="list" class="menu-list" [multiple]="false">
-      <a mat-list-item routerLink="ppm-linechart" routerLinkActive="active-link">
-        <mat-icon mat-list-icon>show_chart</mat-icon>
-        Packets per minute
-      </a>
-      <a mat-list-item routerLink="rssi-linechart-map" routerLinkActive="active-link">
-        <mat-icon mat-list-icon>place</mat-icon>
-        RSSI over time & map
+      <a mat-list-item *ngFor="let p of pages" [routerLink]="p.path" routerLinkActive="active-link">
+        <mat-icon mat-list-icon>{{p.icon}}</mat-icon>
+        {{p.title}}
       </a>
     </mat-nav-list>
   </mat-drawer>
@@ -22,7 +16,10 @@
       <mat-icon>menu</mat-icon>
     </button>
     <div class="flex-spacer"></div>
-    <span>CWA Scanner Web UI</span>
+    <button mat-raised-button color="basic" routerLink="">
+      <mat-icon>home</mat-icon>
+    </button>
+    <!-- <span routerLink="" style="cursor: pointer;">CWA Scanner Web UI</span> -->
     <div class="flex-spacer"></div>
     <button mat-raised-button #menuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="menu" style="margin-right: 10px">
       Uploaded data
@@ -36,6 +33,10 @@
         <button mat-menu-item *ngFor="let f of dataService.filenames">
           <mat-icon (click)="deleteData(f)">cancel</mat-icon>
           {{f}}
+        </button>
+        <button mat-menu-item (click)="openUploadDialog()">
+          <mat-icon>add_circle</mat-icon>
+          Add data
         </button>
       </div>
     </mat-menu>

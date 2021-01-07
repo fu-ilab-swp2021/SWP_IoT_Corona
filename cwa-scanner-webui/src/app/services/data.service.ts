@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CwaPacket } from '../models/cwa-packet.model';
+import { BlePacket } from '../models/cwa-packet.model';
 import { HttpService } from './http.service';
 import { flatMap, map, tap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
@@ -8,7 +8,7 @@ export enum AGGREGATION_TYPES {
   ppm = 'packets_per_minute'
 }
 export interface UploadedDataItem {
-  data: CwaPacket[];
+  data: BlePacket[];
   name: string;
 }
 
@@ -20,10 +20,11 @@ export class DataService {
   filenames: string[] = [];
   initialData = false;
   initialData$ = new Subject();
+  dataChanged = new Subject();
 
   constructor(private httpService: HttpService) {}
 
-  addDataFile(file: CwaPacket[], filename: string) {
+  addDataFile(file: BlePacket[], filename: string) {
     if (!this.dataFiles.find(df => df.name === filename)) {
       this.dataFiles.push({
         data: file,
@@ -44,6 +45,7 @@ export class DataService {
         if (newFile) {
           return this.httpService.getDataFiles().pipe(map((dataFiles) => {
             this.dataFiles = dataFiles;
+            this.dataChanged.next(this.dataFiles);
             return this.dataFiles;
           }));
         } else {
@@ -70,12 +72,14 @@ export class DataService {
   deleteDataFile(name) {
     return this.httpService.deleteDatafile(name).pipe(tap(() => {
       this.dataFiles = this.dataFiles.filter((d) => d.name !== name);
+      this.filenames = this.filenames.filter((f) => f !== name);
+      this.dataChanged.next(this.dataFiles);
     }, (error) => {
       console.error(error);
     }));
   }
 
-  getAggregatedData(aggregationType) {
-    return this.httpService.getAggregatedData(aggregationType, this.filenames);
+  getAggregatedData(aggregationType, options?) {
+    return this.httpService.getAggregatedData(aggregationType, this.filenames, options);
   }
 }
