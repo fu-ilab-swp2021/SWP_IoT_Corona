@@ -19,8 +19,7 @@ class Server():
     def __init__(self, production):
         self.app = Flask("cwa-scanner-backend")
         self.app.config['UPLOAD_PATH'] = 'upload-data'
-        if not os.path.exists(self.app.config['UPLOAD_PATH']):
-            os.makedirs(self.app.config['UPLOAD_PATH'])
+        self.initFolder()
         cors = CORS(self.app, resources={r"/api/*": {"origins": "*"}})
         self.production = production
         self.initRoutes()
@@ -30,6 +29,29 @@ class Server():
 
     def serve(self, host="localhost", port=5080, debug=True):
         self.app.run(host, port, debug)
+    
+    def initFolder(self):
+        if not os.path.exists(self.app.config['UPLOAD_PATH']):
+            os.makedirs(self.app.config['UPLOAD_PATH'])
+        else:
+            try:
+                onlyfiles = [f for f in listdir(self.app.config['UPLOAD_PATH']) if isfile(join(self.app.config['UPLOAD_PATH'], f))]
+                for filename in onlyfiles:
+                    path = join(self.app.config['UPLOAD_PATH'], filename)
+                    if not filename.endswith(".json") and (filename+".json") not in onlyfiles:
+                        res = ADParser([path], fromfile=True)
+                        ps = res.getPkts()
+                        for p in ps:
+                            p['location'] = {
+                                "lat": 52.4403357+(np.random.rand()-0.5)/10,
+                                "lng": 13.2416195+(np.random.rand()-0.5)/10
+                            }
+                        f = open(path+".json", "w")
+                        f.write(json.dumps(ps))
+                        f.close()
+            except Exception as e:
+                print(e)
+                exit(1)
 
     def initRoutes(self):
 
