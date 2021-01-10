@@ -12,7 +12,7 @@ export class HttpService {
   uploadFile(f: File) {
     const formData = new FormData();
     formData.append('fileKey', f, f.name);
-    return this.http.post('/api/upload-cwa-data', formData);
+    return this.http.post('/api/upload-cwa-data-from-file', formData);
   }
 
   getFilenames() {

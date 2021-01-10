@@ -5,7 +5,8 @@ import { flatMap, map, tap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
 
 export enum AGGREGATION_TYPES {
-  ppm = 'packets_per_minute'
+  ppm = 'packets_per_minute',
+  rssi_dist = 'rssi_distribution'
 }
 export interface UploadedDataItem {
   data: BlePacket[];

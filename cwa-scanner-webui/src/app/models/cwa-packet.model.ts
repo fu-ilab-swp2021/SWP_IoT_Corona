@@ -17,3 +17,6 @@ export interface PpmPacket {
     non_cwa: number;
   };
 }
+export interface RssiDistPacket {
+  [rssiRange: string]: number;
+}

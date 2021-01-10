@@ -17,6 +17,12 @@ export const PAGES = [
     title: 'RSSI over time & map',
     previewPath: 'assets/img/rssi_linechart_map_preview.png'
   },
+  {
+    path: 'rssi-distribution',
+    icon: 'leaderboard',
+    title: 'RSSI distribution',
+    previewPath: 'assets/img/rssi_distribution_preview.png'
+  },
 ];
 @Component({
   selector: 'app-root',

@@ -223,8 +223,21 @@ def packets_per_minute(path, files, options=None):
                 ppm[t]["non_cwa"] += 1
     return ppm
 
+def rssi_distribution(path, files, options=None):
+    data = readData(path, files)
+    rssi_dist = {}
+    for ps in data:
+        for p in ps:
+            t = int(p["rssi"] - p["rssi"]%10)
+            if str(t) not in rssi_dist:
+                rssi_dist[str(t)] = 0
+            rssi_dist[str(t)] += 1
+    return rssi_dist
+
 def aggregate(aggregation_type, path, files, options=None):
     f = None
     if aggregation_type == "packets_per_minute":
         f = packets_per_minute
+    elif aggregation_type == "rssi_distribution":
+        f = rssi_distribution
     return f(path, files, options) if f is not None else []

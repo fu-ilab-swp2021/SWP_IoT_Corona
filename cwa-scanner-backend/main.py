@@ -10,4 +10,5 @@ server = Server(production)
 if(production):
     serve(server.getApp(), host='0.0.0.0', port=80)
 else:
-    server.serve(host='localhost', port=5080, debug=True)
+    # server.serve(host='localhost', port=5080, debug=True)
+    server.serve(host='0.0.0.0', port=5080, debug=True)

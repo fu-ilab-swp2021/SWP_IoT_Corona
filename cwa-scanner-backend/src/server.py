@@ -71,10 +71,10 @@ class Server():
         def status():
             return jsonify("Status OK - Production mode: " + str(self.production)), 200
         
-        @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data', methods=['POST'])
-        def uploadData():
+        @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data-from-file', methods=['POST'])
+        def uploadDataFromFile():
             """
-            Upload CWA scanner data from the SD card
+            Upload CWA scanner data from a file from the SD card
             ---
             produces:
                 - application/json
@@ -105,6 +105,38 @@ class Server():
                 f = open(path+".json", "w")
                 f.write(json.dumps(ps))
                 f.close()
+            return jsonify(ps), 200
+        
+        @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data/<filename>', methods=['POST'])
+        def uploadData(filename):
+            """
+            Upload CWA scanner data
+            ---
+            produces:
+                - application/json
+            responses:
+                201:
+                    description: The data was uploaded
+                400:
+                    description: The data could not be uploaded
+                500:
+                    description: The data could not be uploaded
+            """
+            s = request.data.decode('utf-8').replace('\r\n','\n')
+            path = join(self.app.config['UPLOAD_PATH'], filename)
+            f = open(path, "w")
+            f.write(s)
+            f.close()
+            res = ADParser(s, fromfile=False)
+            ps = res.getPkts()
+            for p in ps:
+                p['location'] = {
+                    "lat": 52.4403357+(np.random.rand()-0.5)/10,
+                    "lng": 13.2416195+(np.random.rand()-0.5)/10
+                }
+            f = open(path+".json", "w")
+            f.write(json.dumps(ps))
+            f.close()
             return jsonify(ps), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/cwa-data/<filename>', methods=['GET'])
