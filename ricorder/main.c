@@ -25,6 +25,8 @@
 #include "thread.h"
 #include "xtimer.h"
 
+#include "nimble_scanner.h"
+
 #include "app.h"
 
 // Additional imports for Button handling
@@ -32,8 +34,9 @@
 #include "board_common.h"
 #include "periph/gpio.h"
 
-#define UPDATE_DELAY (1000 * US_PER_MS)
 #define SHELL_PRIO (THREAD_PRIORITY_MAIN + 1)
+
+volatile Modi state = STATE_SCANNER;
 
 #define ENABLE_DEBUG 1
 #include "debug.h"
@@ -76,22 +79,76 @@ static void _start_shell(void)
 }
 #endif
 
+void set_scanner_mode(void *arg)
+{
+    (void) arg;
+    printf("\n\nset_scanner_mode");
+    // int res = nimble_scanner_start();
+    int res = scanner_init();
+    if (res != 0) {
+        printf("\nSomething went wrong while setting scanner mode");
+    } else
+    {
+        printf("\nOkay, why this?");
+    }
+    
+    state = STATE_SCANNER;
+    return;
+}
+
+
+void set_gps_mode(void *arg)
+{
+    (void) arg;
+    if (state == STATE_SCANNER) {
+        nimble_scanner_stop();
+    }
+
+    state = STATE_GPS;
+    // if (state != STATE_GPS)
+    // {
+    //     return;
+    // } else {
+    //     return;
+    // }
+}
+
+
+void set_menu_mode(void *arg)
+{
+    (void) arg;
+    if (state == STATE_SCANNER) {
+        nimble_scanner_stop();
+    }
+
+    state = STATE_MENU;
+    return;
+}
+
+
 int main(void)
 {
     /* run the shell if compiled in */
-#if IS_USED(MODULE_SHELL)
-    _start_shell();
-#endif
+    #if IS_USED(MODULE_SHELL)
+        _start_shell();
+    #endif
 
-#if SETTIME == 1
-    wallclock_wait_for_settime();
-    exit(0);
-#endif
+    #if SETTIME == 1
+        wallclock_wait_for_settime();
+        exit(0);
+    #endif
 
     int res;
 
+
+    printf("\n\nThis should be the first print");
+
     /* start user interface */
     ui_init();
+
+    printf("\n\nAfter UI init\n");
+
+    xtimer_sleep(5);
 
     /* initialize the wallclock (RTC) */
     res = wallclock_init();
@@ -118,6 +175,7 @@ int main(void)
     }
 
     /* start BLe scanner */
+
     res = scanner_init();
     if (res != 0) {
         puts("BLE:       FAIL");
@@ -129,27 +187,114 @@ int main(void)
         ui_boot_msg("BLE:       OK");
     }
 
+
+    // Dummy longitudes and latitudes (Berlin coordinates)
+    static float lon = 52.520008;
+    static float lat = 13.404954;
+
+    static double lon1 = 2.520008123456;
+    static double lat1 = 113.404954123456;
+
+    // printf("\nLongitude: %8.6f", lon);
+    // printf("\nLatitude: %8.6f", lat);
+
+    // printf("\nLon1: %8.6f", lon1);
+    // printf("\nLat1: %8.6f", lat1);
+
+    printf("\nLongitude: %f", lon);
+    printf("\nLatitude: %f", lat);
+
+    printf("\nLon1: %d", (int)lon1);
+    printf("\nLat1: %g", lat1);
+
+
     // Ask user to press Button 1 to start scanning 
-    gpio_init(LED0_PIN, GPIO_OUT);
-    gpio_init(BTN0_PIN, BTN0_MODE);
-    while(1)
-    {
-        if(gpio_read(BTN0_PIN) == 1)
-        {
-            ui_boot_msg("Press Button 1 to start scanning.");
-        } else
-        {
-            break;
-        }
-    }
+    // gpio_init(LED0_PIN, GPIO_OUT);
+    // gpio_toggle(LED0_PIN);
+    // gpio_init_int(BTN0_PIN, GPIO_IN_PD, GPIO_FALLING , );
+
+
+// #if defined(MODULE_PERIPH_GPIO_IRQ) && defined(BTN0_PIN) && defined(BTN1_PIN) && defined(BTN2_PIN) && defined(BTN3_PIN)
+    gpio_init_int(BTN0_PIN, GPIO_IN, GPIO_FALLING, set_gps_mode, NULL);
+    gpio_init_int(BTN1_PIN, GPIO_IN, GPIO_FALLING, set_scanner_mode, NULL);
+    // gpio_init_int(BTN2_PIN, GPIO_IN, GPIO_FALLING, nimble_scanner_stop, NULL);
+    gpio_init_int(BTN3_PIN, GPIO_IN, GPIO_FALLING, set_menu_mode, NULL);
+// #endif
+
+
+    // BTN0_MODE
+
+
+    // ui_boot_msg("Button 1: GPS Mode");
+
+    // while (1)
+    // {
+    //     // led_mode(void);
+    //     printf("\nHello");
+    // }
+
+
 
     /* run the update loop */
+    // xtimer_ticks32_t last_wakeup = xtimer_now();
+    // while (1) {
+    //     ui_update();
+    //     stor_flush(&lat, &lon);
+    //     xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
+    // }
+
+    // scanner_mode(NULL);
+
+    // application_modes app_mode = GPS_MODE;
     xtimer_ticks32_t last_wakeup = xtimer_now();
-    while (1) {
-        ui_update();
-        stor_flush();
-        xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
+
+    while(1)
+    {
+        switch (state)
+        {
+        case STATE_GPS:
+            gps_mode();
+            break;
+        case STATE_SCANNER:
+            printf("Scanner Mode is on");
+            scanner_mode(&lat, &lon, last_wakeup);
+            break;
+        case STATE_MENU:
+            menu_mode();
+            break;
+        default:
+            printf("\nNo mode selected");
+            xtimer_sleep(1);
+        }
+
+        // xtimer_sleep(4);
+        printf("\nCurrent State: %d\n\n", state);
+        // nimble_scanner_stop();
+        printf("\nNimble Scanner Status: %d\n\n", nimble_scanner_status());
+        // idle_mode(NULL);
     }
+
+
+
+    // gpio_read(BTN0_PIN)
+    // while(1)
+    // {    
+
+    //     printf("\n Waiting for ");
+    //     xtimer_usleep(10);
+    //     // printf("\nButton 0 Pin: %d", (int)gpio_read(BTN0_PIN));
+    //     // if(gpio_read(BTN0_PIN) == 1)
+    //     // {
+    //     // } else
+    //     // {
+    //     //     break;
+    //     // }
+
+
+    // }
+
+    // LED0_OFF;
+
 
     return 0;
 }
