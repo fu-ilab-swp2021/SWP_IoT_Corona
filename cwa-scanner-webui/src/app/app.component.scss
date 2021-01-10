@@ -1,3 +1,19 @@
 .main-toolbar {
     justify-content: center;
 }
+
+.drawer-container {
+    height: 100%;
+}
+
+.menu-list {
+    // padding: 10px;
+
+    > a:hover {
+        background-color: rgba(200,100,200,0.7);
+    }
+}
+
+.active-link {
+    background-color:  rgba(200,100,200,0.4);
+}

@@ -6,3 +6,12 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .flex-spacer {
     flex: 1 1 auto
 }
+
+.mat-nav-list .mat-list-item:hover, .mat-nav-list .mat-list-item:focus {
+    background-color: rgba(200,100,200,0.4);
+}
+
+*:focus {
+    outline: none !important;
+    border: 0 !important;
+}

@@ -22,6 +22,8 @@
 
 
 import os
+from os import listdir
+from os.path import isfile, join
 import re
 import sys
 import argparse
@@ -186,3 +188,56 @@ class ADParser():
             if len(itvl) > 0:
                 print("  itvl: {:.2f}s / {:.2f}s / {:.2f}s".format(
                         min(itvl), max(itvl), (sum(itvl) / len(itvl))))
+
+def readData(path, files):
+    data = []
+    try:
+        for filename in files:
+            p = join(path, filename+".json")
+            f = open(p, "r")
+            s = f.read()
+            f.close()
+            data.append(json.loads(s))
+        return data
+    except Exception as e:
+        print(e)
+        return []
+
+def packets_per_minute(path, files, options=None):
+    interval = options["interval"] if options is not None else 60
+    data = readData(path, files)
+    ppm = {}
+    for ps in data:
+        for p in ps:
+            t = int(p["time"] - p["time"]%interval)
+            if t not in ppm:
+                ppm[t] = {
+                    "total": 0,
+                    "cwa": 0,
+                    "non_cwa": 0
+                }
+            ppm[t]["total"] += 1
+            if CWA_SVC_STR in p["payload"]:
+                ppm[t]["cwa"] += 1
+            else:
+                ppm[t]["non_cwa"] += 1
+    return ppm
+
+def rssi_distribution(path, files, options=None):
+    data = readData(path, files)
+    rssi_dist = {}
+    for ps in data:
+        for p in ps:
+            t = int(p["rssi"] - p["rssi"]%10)
+            if str(t) not in rssi_dist:
+                rssi_dist[str(t)] = 0
+            rssi_dist[str(t)] += 1
+    return rssi_dist
+
+def aggregate(aggregation_type, path, files, options=None):
+    f = None
+    if aggregation_type == "packets_per_minute":
+        f = packets_per_minute
+    elif aggregation_type == "rssi_distribution":
+        f = rssi_distribution
+    return f(path, files, options) if f is not None else []

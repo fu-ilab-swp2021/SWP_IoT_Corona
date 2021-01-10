@@ -1,0 +1,12 @@
+<app-file-upload></app-file-upload>
+<div class="cards-container">
+    <mat-card *ngFor="let p of pages" class="page-card" [routerLink]="p.path">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>{{p.icon}}</mat-icon>
+        <mat-card-title>{{p.title}}</mat-card-title>
+      </mat-card-header>
+      <img mat-card-image [src]="p.previewPath" alt="Preview photo">
+      <mat-card-content>
+      </mat-card-content>
+    </mat-card>
+</div>
