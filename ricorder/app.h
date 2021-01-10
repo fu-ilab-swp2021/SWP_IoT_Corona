@@ -21,6 +21,7 @@
 #define APP_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +52,9 @@ void stor_flush(void);
 void ui_init(void);
 void ui_boot_msg(const char *msg);
 void ui_update(void);
+
+int udp_cmd(int argc, char **argv);
+int send_data(void);
 
 
 #ifdef __cplusplus

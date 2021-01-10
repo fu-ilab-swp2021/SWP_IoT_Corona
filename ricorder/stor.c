@@ -56,7 +56,8 @@ static vfs_mount_t flash_mount = {
     .private_data = &fs_desc,
 };
 
-#define FSBUF_SIZE          16384U      /* 15kb buffer */
+// #define FSBUF_SIZE          16384U      /* 15kb buffer */
+#define FSBUF_SIZE          4096U      /* 4kb buffer */
 
 static mutex_t _buflock = MUTEX_INIT;
 static char _inbuf[FSBUF_SIZE];
@@ -129,4 +130,75 @@ void stor_flush(void)
         DEBUG("[stor] _flush: size written is not the given\n");
     }
     vfs_close(f);
+}
+
+int send_data(void) {
+
+    int argc = 5;
+    char** argv = (char**) malloc(argc * sizeof(char*));
+    argv[0] = "udp";
+    argv[1] = "send";
+    argv[2] = "FE80::6014:B3FF:FEB5:F6DE";
+    argv[3] = "12345";
+    int size = 1024;
+    int res;
+    vfs_DIR* dirp = malloc(sizeof(vfs_DIR));
+    res = vfs_opendir(dirp, "/f");
+    if (res!=0) {
+        printf("ERROR OPEN %d\n", res);
+        return 1;
+    } else {
+        printf("OPEN\n");
+    }
+    vfs_dirent_t* entry = malloc(sizeof(vfs_dirent_t));
+    res = vfs_readdir(dirp, entry);
+    if (res==1) {
+        printf("READ\n");
+    }
+    while (res==1) {
+        printf("ENTRY %s\n",entry->d_name);
+        char file[100];
+        strcpy(file, "/f/");
+        strcat(file, entry->d_name);
+        int f = vfs_open(file, O_RDONLY, 0);
+        if (f < 0) {
+            DEBUG("[stor] _flush: unable to open file '%s'\n", file);
+        } else {
+            printf("OPEN %s\n", file);
+            char filename_line[100];
+            strcpy(filename_line, "filename=");
+            strcat(filename_line, entry->d_name);
+            argv[4] = filename_line;
+            udp_cmd(argc, argv);
+            int n = vfs_read(f, _fsbuf, size);
+            if (n < 0) {
+                DEBUG("[stor] _flush: unable to read data\n");
+                vfs_close(f);
+                argv[4] = "fail";
+                udp_cmd(argc, argv);
+                continue;
+            }
+            while (n>0) {
+                _fsbuf[n+1]='\0';
+                printf("DATASIZE: %u\n",strlen(_fsbuf));
+                argv[4] = _fsbuf;
+                udp_cmd(argc, argv);
+                // vfs_lseek(f,n,SEEK_CUR);
+                n = vfs_read(f, _fsbuf, size);
+            }
+            argv[4] = "close";
+            udp_cmd(argc, argv);
+            vfs_close(f);
+        }
+        res = vfs_readdir(dirp, entry);
+        if (res!=1) {
+            printf("ERROR READ %d\n", res);
+            break;
+        } else {
+            printf("READ\n");
+        }
+    }
+    argv[4] = "end";
+    udp_cmd(argc, argv);
+    return 0;
 }

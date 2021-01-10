@@ -2,7 +2,7 @@ APPLICATION = cwa-tracker
 RIOTBASE ?= $(CURDIR)/../RIOT
 BOARD ?= nrf52dk
 
-DEVELHELP ?= 0
+DEVELHELP ?= 1
 QUIET ?= 1
 SETTIME ?= 0
 
@@ -37,6 +37,25 @@ USEMODULE += ps
 # else
 #   USEMODULE += stdio_null
 # endif
+
+# Include packages that pull up and auto-init the link layer.
+# NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
+USEMODULE += gnrc_netdev_default
+USEMODULE += auto_init_gnrc_netif
+# Activate ICMPv6 error messages
+USEMODULE += gnrc_icmpv6_error
+# Specify the mandatory networking modules for IPv6 and UDP
+USEMODULE += gnrc_ipv6_router_default
+USEMODULE += gnrc_udp
+# Add a routing protocol
+USEMODULE += gnrc_rpl
+USEMODULE += auto_init_gnrc_rpl
+# This application dumps received packets to STDIO using the pktdump module
+USEMODULE += gnrc_pktdump
+# Additional networking modules that can be dropped if not needed
+USEMODULE += gnrc_icmpv6_echo
+
+CFLAGS += -DCONFIG_GNRC_IPV6_NIB_SLAAC=1
 
 # define pin and other board specific configuration for specific boards
 ifeq (particle-xenon,$(BOARD))

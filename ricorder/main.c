@@ -27,6 +27,16 @@
 
 #include "app.h"
 
+#include "msg.h"
+#include "nimble_netif_conn.h"
+#include "nimble_netif.h"
+#include "shell_commands.h"
+
+// #define MAIN_QUEUE_SIZE     (8)
+// static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
+
+extern int _nimble_netif_handler(int argc, char **argv);
+
 #define UPDATE_DELAY (1000 * US_PER_MS)
 #define SHELL_PRIO (THREAD_PRIORITY_MAIN + 1)
 
@@ -35,6 +45,29 @@
 
 #if IS_USED(MODULE_SHELL)
 static char _stack[THREAD_STACKSIZE_DEFAULT];
+
+int mode = 0;
+
+int wait_for_connection(void) {
+    int argc = 2;
+    char** argv = malloc(argc * sizeof(char*));
+    argv[0] = "ble";
+    argv[1] = "adv";
+    _nimble_netif_handler(argc, argv);
+    xtimer_ticks32_t last_wakeup = xtimer_now();
+    nimble_netif_conn_t* con;
+    con = nimble_netif_conn_get(0);
+    while (con->state != 0x0022) {
+        xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
+        con = nimble_netif_conn_get(0);
+        printf("Waiting for connection...\n");
+        printf("%u\n",con->state);
+    }
+    printf("CONNECTED\n");
+    xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
+    xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
+    return 0;
+}
 
 int settime(int argc, char **argv) {
     (void)argc;
@@ -49,10 +82,19 @@ int settime(int argc, char **argv) {
     return 0;
 }
 
+int chooseMode(int argc, char **argv) {
+    (void)argc;
+    mode = atoi(argv[1]);
+    return 0;
+}
+
 static const shell_command_t commands[] = {
 #if SETTIME == 1
-    {"settime", "print some shit", settime}
+    {"settime", "set the time", settime},
 #endif
+    { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
+    { "ble", "ble utility", _nimble_netif_handler },
+    { "mode", "choose mode", chooseMode }
 };
 
 static void *_shell_thread(void *arg)
@@ -71,18 +113,7 @@ static void _start_shell(void)
 }
 #endif
 
-int main(void)
-{
-    /* run the shell if compiled in */
-#if IS_USED(MODULE_SHELL)
-    _start_shell();
-#endif
-
-#if SETTIME == 1
-    wallclock_wait_for_settime();
-    exit(0);
-#endif
-
+int scan_mode(void) {
     int res;
 
     /* start user interface */
@@ -131,6 +162,48 @@ int main(void)
         stor_flush();
         xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
     }
+
+    return 0;
+}
+
+int send_mode(void) {
+    wait_for_connection();
+    stor_init();
+    send_data();
+    return 0;
+}
+
+void waitForChooseMode(void) {
+    xtimer_ticks32_t last_wakeup = xtimer_now();
+    while (mode == 0) {
+        xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
+    }
+    switch (mode)
+    {
+    case 1:
+        scan_mode();
+        break;
+    case 2:
+        send_mode();
+        break;
+    default:
+        break;
+    }
+}
+
+int main(void)
+{
+    /* run the shell if compiled in */
+#if IS_USED(MODULE_SHELL)
+    _start_shell();
+#endif
+
+#if SETTIME == 1
+    wallclock_wait_for_settime();
+    exit(0);
+#endif
+
+    waitForChooseMode();
 
     return 0;
 }
