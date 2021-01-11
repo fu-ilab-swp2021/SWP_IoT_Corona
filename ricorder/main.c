@@ -88,19 +88,12 @@ int settime(int argc, char **argv) {
     return 0;
 }
 
-int chooseMode(int argc, char **argv) {
-    (void)argc;
-    mode = atoi(argv[1]);
-    return 0;
-}
-
 static const shell_command_t commands[] = {
 #if SETTIME == 1
     {"settime", "set the time", settime},
 #endif
     { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
-    { "ble", "ble utility", _nimble_netif_handler },
-    { "mode", "choose mode", chooseMode }
+    { "ble", "ble utility", _nimble_netif_handler }
 };
 
 static void *_shell_thread(void *arg)
