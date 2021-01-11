@@ -57,6 +57,9 @@ USEMODULE += gnrc_icmpv6_echo
 
 CFLAGS += -DCONFIG_GNRC_IPV6_NIB_SLAAC=1
 
+# In order to use lat and lon as file names
+USEMODULE += printf_float
+
 # define pin and other board specific configuration for specific boards
 ifeq (particle-xenon,$(BOARD))
   PROGRAMMER = jlink

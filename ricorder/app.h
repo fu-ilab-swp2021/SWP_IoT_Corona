@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "xtimer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +36,13 @@ typedef struct {
     uint32_t cwa_cnt;
 } scanner_stats_t;
 
+typedef enum {
+    STATE_GPS = 1,
+    STATE_SCANNER = 2,
+    STATE_MENU = 3,
+    STATE_SEND = 4
+} Modi;
+
 int wallclock_init(void);
 int wallclock_set_time(double time);
 void wallclock_now(uint32_t *secs, uint32_t *msecs);
@@ -47,15 +55,23 @@ void scanner_getcount(scanner_stats_t *stats);
 
 int stor_init(void);
 int stor_write_ln(char *line, size_t len);
-void stor_flush(void);
+void stor_flush(float *lat, float *lon);
 
 void ui_init(void);
 void ui_boot_msg(const char *msg);
-void ui_update(void);
+void ui_update_scanner(void);
+void ui_update_gps(void);
+void ui_update_menu(void);
 
 int udp_cmd(int argc, char **argv);
 int send_data(void);
 
+void set_gps_mode(void *arg);
+void set_scanner_mode(void *arg);
+void set_menu_mode(void *arg);
+void gps_mode(void);
+void scanner_mode(float *lat, float *lon, xtimer_ticks32_t last_wakeup);
+void menu_mode(void);
 
 #ifdef __cplusplus
 }
