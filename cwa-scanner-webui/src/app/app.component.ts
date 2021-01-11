@@ -7,8 +7,8 @@ import { DataService } from './services/data.service';
 export const PAGES = [
   {
     path: 'ppm-linechart',
-    icon: 'show_chart',
-    title: 'Packets per interval',
+    icon: 'stacked_line_chart',
+    title: '#Packets per interval',
     previewPath: 'assets/img/ppm_linechart_preview.png'
   },
   {
@@ -22,6 +22,12 @@ export const PAGES = [
     icon: 'leaderboard',
     title: 'RSSI distribution',
     previewPath: 'assets/img/rssi_distribution_preview.png'
+  },
+  {
+    path: 'dpm-linechart',
+    icon: 'show_chart',
+    title: '#Devices per interval',
+    previewPath: 'assets/img/dpm_linechart_preview.png'
   },
 ];
 @Component({

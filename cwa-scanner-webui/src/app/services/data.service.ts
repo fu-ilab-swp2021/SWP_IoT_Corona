@@ -6,7 +6,8 @@ import { of, Subject } from 'rxjs';
 
 export enum AGGREGATION_TYPES {
   ppm = 'packets_per_minute',
-  rssi_dist = 'rssi_distribution'
+  rssi_dist = 'rssi_distribution',
+  dpm = 'devices_per_minute',
 }
 export interface UploadedDataItem {
   data: BlePacket[];
