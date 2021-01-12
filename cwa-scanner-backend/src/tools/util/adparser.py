@@ -223,6 +223,23 @@ def packets_per_minute(path, files, options=None):
                 ppm[t]["non_cwa"] += 1
     return ppm
 
+def devices_per_minute(path, files, options=None):
+    interval = options["interval"] if options is not None else 60
+    data = readData(path, files)
+    dpm = {}
+    dpm2 = {}
+    for ps in data:
+        for p in ps:
+            t = int(p["time"] - p["time"]%interval)
+            if t not in dpm:
+                dpm[t] = 1
+                dpm2[t] = [p["addr"]]
+            if p["addr"] not in dpm2[t]:
+                dpm2[t].append(p["addr"])
+                dpm[t] += 1
+    print(dpm2)
+    return dpm
+
 def rssi_distribution(path, files, options=None):
     data = readData(path, files)
     rssi_dist = {}
@@ -240,4 +257,6 @@ def aggregate(aggregation_type, path, files, options=None):
         f = packets_per_minute
     elif aggregation_type == "rssi_distribution":
         f = rssi_distribution
+    elif aggregation_type == "devices_per_minute":
+        f = devices_per_minute
     return f(path, files, options) if f is not None else []

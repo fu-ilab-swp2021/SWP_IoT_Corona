@@ -10,6 +10,18 @@ from werkzeug.utils import secure_filename
 import numpy as np
 import json
 
+
+def addNoiseToCoordinates(packets):
+    lat = 52.4403357+(np.random.rand()-0.5)/100,
+    lng = 13.2416195+(np.random.rand()-0.5)/100
+    for p in packets:
+        p['location'] = {
+            # "lat": 52.4403357+(np.random.rand()-0.5)/1000,
+            # "lng": 13.2416195+(np.random.rand()-0.5)/1000
+            "lat": lat,
+            "lng": lng
+        }
+
 class Server():
 
     ROOT_URL_PATH = "/api"
@@ -41,11 +53,7 @@ class Server():
                     if not filename.endswith(".json") and (filename+".json") not in onlyfiles:
                         res = ADParser([path], fromfile=True)
                         ps = res.getPkts()
-                        for p in ps:
-                            p['location'] = {
-                                "lat": 52.4403357+(np.random.rand()-0.5)/10,
-                                "lng": 13.2416195+(np.random.rand()-0.5)/10
-                            }
+                        addNoiseToCoordinates(ps)
                         f = open(path+".json", "w")
                         f.write(json.dumps(ps))
                         f.close()
@@ -76,6 +84,8 @@ class Server():
             """
             Upload CWA scanner data from a file from the SD card
             ---
+            tags:
+                - CWA scanner data
             produces:
                 - application/json
             responses:
@@ -96,11 +106,7 @@ class Server():
                 f.close()
             res = ADParser(s, fromfile=False)
             ps = res.getPkts()
-            for p in ps:
-                p['location'] = {
-                    "lat": 52.4403357+(np.random.rand()-0.5)/10,
-                    "lng": 13.2416195+(np.random.rand()-0.5)/10
-                }
+            addNoiseToCoordinates(ps)
             if path is not None:
                 f = open(path+".json", "w")
                 f.write(json.dumps(ps))
@@ -112,6 +118,8 @@ class Server():
             """
             Upload CWA scanner data
             ---
+            tags:
+                - CWA scanner data
             produces:
                 - application/json
             responses:
@@ -129,11 +137,7 @@ class Server():
             f.close()
             res = ADParser(s, fromfile=False)
             ps = res.getPkts()
-            for p in ps:
-                p['location'] = {
-                    "lat": 52.4403357+(np.random.rand()-0.5)/10,
-                    "lng": 13.2416195+(np.random.rand()-0.5)/10
-                }
+            addNoiseToCoordinates(ps)
             f = open(path+".json", "w")
             f.write(json.dumps(ps))
             f.close()
@@ -144,6 +148,8 @@ class Server():
             """
             Get uploaded CWA data
             ---
+            tags:
+                - CWA scanner data
             parameters:
                 - name: filename
                   in: path
@@ -181,6 +187,8 @@ class Server():
             """
             Delete uploaded CWA data
             ---
+            tags:
+                - CWA scanner data
             parameters:
                 - name: filename
                   in: path
@@ -214,6 +222,8 @@ class Server():
             """
             Get uploaded CWA data
             ---
+            tags:
+                - CWA scanner data
             produces:
                 - application/json
                 - text/plain
@@ -253,6 +263,8 @@ class Server():
             """
             Get uploaded CWA data filenames
             ---
+            tags:
+                - CWA scanner data
             produces:
                 - application/json
             responses:
@@ -275,6 +287,8 @@ class Server():
             """
             Aggregate uploaded CWA data
             ---
+            tags:
+                - CWA scanner data
             definitions:
             - schema:
                 id: AggregationRequest

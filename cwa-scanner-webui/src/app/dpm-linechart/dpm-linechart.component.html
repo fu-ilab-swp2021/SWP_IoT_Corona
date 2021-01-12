@@ -1,0 +1,59 @@
+<div class="chart-map-container">
+    <div class="chart-container">
+      <ngx-charts-line-chart
+        #ngx_chart
+        [activeEntries]="activeEntries"
+        [scheme]="colorScheme"
+        [legend]="legend"
+        legendPosition="'below'"
+        [autoScale]="autoScale"
+        [showXAxisLabel]="showXAxisLabel"
+        [showYAxisLabel]="showYAxisLabel"
+        [xAxis]="xAxis"
+        [xAxisTickFormatting]="formatXAxisLabel"
+        [yAxis]="yAxis"
+        [xAxisLabel]="xAxisLabel"
+        [yAxisLabel]="yAxisLabel"
+        [timeline]="timeline"
+        [results]="chartData"
+        (select)="onSelect($event)"
+        (activate)="onActivate($event)"
+        (deactivate)="onDeactivate($event)"
+      >
+        <ng-template #seriesTooltipTemplate let-items="model">
+          <p>{{ items[0]?.name | date: "medium" }}</p>
+          <ul>
+            <li *ngFor="let item of items">
+              {{ item.series }}: {{ item.value | number }}
+            </li>
+          </ul>
+        </ng-template>
+        <ng-template #tooltipTemplate let-item="model">
+          <p>{{ item.name | date: "medium" }}</p>
+          <p>{{ item.series }}: {{ item.value | number }}</p>
+        </ng-template>
+      </ngx-charts-line-chart>
+      <!-- <ngx-charts-legend
+            fxFlex="100%"
+            class="chart-legend"
+            [data]="chartNames()"
+            [title]="'Legend'"
+            [colors]="colors"
+            (labelActivate)="onActivate($event)"
+            (labelDeactivate)="onDeactivate($event)"
+            (labelClick)="onSelect($event)"
+          ></ngx-charts-legend> -->
+    </div>
+  </div>
+  <div class="slider-container">
+    <h3>Interval size</h3>
+    <mat-slider
+      [formControl]="sliderFC"
+      thumbLabel
+      tickInterval="1"
+      step="5"
+      min="5"
+      max="120"></mat-slider>
+    <span>{{sliderFC.value}} seconds</span>
+    <button mat-raised-button class="confirm-button" color="primary" (click)="changeInterval(sliderFC.value)">Confirm</button>
+  </div>

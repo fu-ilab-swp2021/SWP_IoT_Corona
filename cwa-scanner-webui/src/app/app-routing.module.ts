@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
+import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 import { FileUploadComponent } from './file-upload/file-upload.component';
 import { HomeComponent } from './home/home.component';
 import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
@@ -30,6 +31,10 @@ const routes: Routes = [
   {
     path: 'rssi-distribution',
     component: RssiDistributionComponent
+  },
+  {
+    path: 'dpm-linechart',
+    component: DpmLinechartComponent
   },
 ];
 

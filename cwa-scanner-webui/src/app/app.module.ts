@@ -28,6 +28,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { FileUploadDialogComponent } from './file-upload/file-upload-dialog.component';
 import { HomeComponent } from './home/home.component';
 import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
+import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution
     RssiLinechartMapComponent,
     HomeComponent,
     RssiDistributionComponent,
+    DpmLinechartComponent,
   ],
   imports: [
     BrowserModule,
