@@ -1,13 +1,54 @@
-<mat-toolbar color="primary" class="main-toolbar">
-  <button mat-raised-button color="basic" routerLink="">
-    <mat-icon>home</mat-icon>
-  </button>
-  <div class="flex-spacer"></div>
-  <span>CWA Scanner Web UI</span>
-  <div class="flex-spacer"></div>
-  <button mat-raised-button color="accent" routerLink="swagger-ui" style="margin-right: 10px;">
-    <mat-icon>double_arrow</mat-icon>
-    API
-  </button>
-</mat-toolbar>
-<router-outlet></router-outlet>
+<mat-drawer-container class="drawer-container">
+  <mat-drawer #drawer mode="side">
+    <mat-toolbar color="primary" class="main-toolbar">
+      Visualizations
+    </mat-toolbar>
+    <mat-nav-list role="list" class="menu-list" [multiple]="false">
+      <a mat-list-item *ngFor="let p of pages" [routerLink]="p.path" routerLinkActive="active-link">
+        <mat-icon mat-list-icon>{{p.icon}}</mat-icon>
+        {{p.title}}
+      </a>
+    </mat-nav-list>
+  </mat-drawer>
+
+  <mat-toolbar color="primary" class="main-toolbar">
+    <button mat-icon-button (click)="drawer.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <div class="flex-spacer"></div>
+    <button mat-raised-button color="basic" routerLink="">
+      <mat-icon>home</mat-icon>
+    </button>
+    <!-- <span routerLink="" style="cursor: pointer;">CWA Scanner Web UI</span> -->
+    <div class="flex-spacer"></div>
+    <button mat-raised-button #menuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="menu" style="margin-right: 10px">
+      Uploaded data
+      <mat-icon>list</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <div (click)="$event.stopPropagation();$event.preventDefault();">
+        <button mat-menu-item *ngIf="!dataService.filenames || dataService.filenames.length < 1">
+          No files uploaded
+        </button>
+        <button mat-menu-item *ngFor="let f of dataService.filenames">
+          <mat-icon (click)="deleteData(f)">cancel</mat-icon>
+          {{f}}
+        </button>
+        <button mat-menu-item (click)="openUploadDialog()">
+          <mat-icon>add_circle</mat-icon>
+          Add data
+        </button>
+      </div>
+    </mat-menu>
+    <button
+      mat-raised-button
+      color="accent"
+      routerLink="swagger-ui"
+      style="margin-right: 10px"
+    >
+      <mat-icon>double_arrow</mat-icon>
+      API
+    </button>
+  </mat-toolbar>
+  <router-outlet></router-outlet>
+</mat-drawer-container>

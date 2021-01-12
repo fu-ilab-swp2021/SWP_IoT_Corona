@@ -3,33 +3,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: white;
+    width: 320px;
+    margin: 10px auto 0 auto;
+    padding-top: 15px;
+    border-radius: 4px;
 
     > button {
         margin-left: 10px;
         margin-bottom: 18px;
-    }
-}
-
-.chart-map-container {
-    display: flex;
-    width: 100vw;
-    height: 600px;
-    justify-content: space-around;
-    .chart-container {
-        width: 45%;
-        height: 80%;
-
-        .chart-legend {
-            width: 100% !important;
-        }
-        ::ng-deep.legend-wrap {
-            height: 250px;
-            overflow: auto;
-        }
-    }
-
-    .maps-container {
-        width: 45%;
-        height: 100%;
     }
 }
