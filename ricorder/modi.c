@@ -52,10 +52,11 @@ void scanner_mode(float *lat, float *lon, xtimer_ticks32_t last_wakeup)
 {
     // (void) arg;
 
-    // printf("\nEntering Scanner Mode..");
+    printf("\nmodi.c|scanner_mode");
     // printf("\nLat: %f,  Lon: %f\n", *lat, *lon);
     // xtimer_sleep(1);
 
+    
     ui_update_scanner();
     stor_flush(lat, lon);
     xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
@@ -63,7 +64,7 @@ void scanner_mode(float *lat, float *lon, xtimer_ticks32_t last_wakeup)
 
 void menu_mode(void)
 {
-    printf("\nHello, this is the Menu mode.");
-    xtimer_sleep(2);
+    // printf("\nHello, this is the Menu mode.");
+    // xtimer_sleep(2);
     ui_update_menu();
 }

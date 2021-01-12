@@ -53,7 +53,7 @@ static void _on_disc(uint8_t type,
     uint32_t sec;
     uint32_t ms;
 
-    printf("\n\n _on_disc");
+    printf("\nscanner.c|_on_disc");
 
     wallclock_now(&sec, &ms);
 
@@ -81,8 +81,13 @@ static void _on_disc(uint8_t type,
     _tmp[pos] = '\0';
 
     DEBUG("%s", _tmp);
-    printf("\nYes, I am here!");
-    stor_write_ln(_tmp, pos);
+    printf("\nscanner.c|_on_disc|Adress of _tmp: %p", _tmp);
+    // printf("\nscanner.c|_on_disc|_tmp: %s", _tmp);
+    // printf("\nscanner.c|_on_disc|pos: %d", pos);
+    // char *hallo = "abcdef";
+    // printf("\nXXX %s", hallo);
+    int res_stor_write_ln = stor_write_ln(_tmp, pos);
+    printf("\nscanner.c|_on_disc|res_stor_write_ln: %d", res_stor_write_ln);
 
     /* see if the advertising data contains the GAEN service */
     bluetil_ad_t adt;
@@ -98,12 +103,12 @@ int scanner_init(void)
 {
     int res = nimble_scanner_init(&_scan_params, _on_disc);
     // printf("\")
-    printf("\nscanner_init | res: %d\n", res);
+    printf("\nscanner.c|scanner_init|res: %d\n", res);
     if (res != 0) {
         return res;
     }
-    return nimble_scanner_start();
-    // return 0;
+    // return nimble_scanner_start();
+    return 0;
 }
 
 void scanner_getcount(scanner_stats_t *stats)

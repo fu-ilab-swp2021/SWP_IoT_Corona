@@ -37,9 +37,10 @@ typedef struct {
 } scanner_stats_t;
 
 typedef enum {
-    STATE_GPS = 1,
-    STATE_SCANNER = 2,
-    STATE_MENU = 3
+    STATE_SWITCHED = 1,
+    STATE_GPS = 2,
+    STATE_SCANNER = 3,
+    STATE_MENU = 4
 } Modi;
 
 int wallclock_init(void);
