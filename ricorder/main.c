@@ -33,6 +33,7 @@
 #include "nimble_netif_conn.h"
 #include "nimble_netif.h"
 #include "shell_commands.h"
+#include "services.h"
 
 extern int _nimble_netif_handler(int argc, char **argv);
 
@@ -178,6 +179,7 @@ void set_menu_mode(void *arg)
 
 int main(void)
 {
+    init_service();
     /* run the shell if compiled in */
     #if IS_USED(MODULE_SHELL)
         _start_shell();
