@@ -38,6 +38,10 @@ USEMODULE += ps
 #   USEMODULE += stdio_null
 # endif
 
+
+# In order to use lat and lon as file names
+USEMODULE += printf_float
+
 # define pin and other board specific configuration for specific boards
 ifeq (particle-xenon,$(BOARD))
   PROGRAMMER = jlink
