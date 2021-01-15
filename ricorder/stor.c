@@ -105,7 +105,7 @@ void stor_flush(float *lat, float *lon)
 {
     printf("\nstor.c|stor_flush");
     size_t len;
-    char file[FILENAME_MAXLEN];
+    char file[FILENAME_MAXLEN] = "/f/test123";
 
     int buffer_snprintf_return = snprintf(file, sizeof(file), "/f/%f.%f", *lat, *lon);
     // int buffer_snprintf_return = snprintf(file, sizeof(file), "/f/test");

@@ -101,14 +101,10 @@ static void _on_disc(uint8_t type,
 
 int scanner_init(void)
 {
+ 
     int res = nimble_scanner_init(&_scan_params, _on_disc);
-    // printf("\")
     printf("\nscanner.c|scanner_init|res: %d\n", res);
-    if (res != 0) {
-        return res;
-    }
-    // return nimble_scanner_start();
-    return 0;
+    return res;
 }
 
 void scanner_getcount(scanner_stats_t *stats)
