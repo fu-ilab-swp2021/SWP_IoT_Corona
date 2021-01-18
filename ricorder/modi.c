@@ -27,10 +27,6 @@ void gps_mode(void)
     LED2_OFF;
     LED3_OFF;
 
-    // (void) arg;
-    // while (1)
-    // {
-
     LED3_OFF;
     LED0_ON;
     xtimer_usleep(500000);
@@ -43,19 +39,14 @@ void gps_mode(void)
     LED2_OFF;
     LED3_ON;
     
-    // xtimer_sleep(1);
-    // }
 }
 
 
 void scanner_mode(float *lat, float *lon, xtimer_ticks32_t last_wakeup)
 {
-    // (void) arg;
 
-    // printf("\nEntering Scanner Mode..");
-    // printf("\nLat: %f,  Lon: %f\n", *lat, *lon);
-    // xtimer_sleep(1);
-
+    printf("\nmodi.c|scanner_mode");
+   
     ui_update_scanner();
     stor_flush(lat, lon);
     xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
@@ -63,7 +54,5 @@ void scanner_mode(float *lat, float *lon, xtimer_ticks32_t last_wakeup)
 
 void menu_mode(void)
 {
-    printf("\nHello, this is the Menu mode.");
-    xtimer_sleep(2);
     ui_update_menu();
 }
