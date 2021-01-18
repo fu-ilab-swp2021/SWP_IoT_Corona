@@ -50,7 +50,7 @@ volatile Modi state = STATE_MENU;
 #define ENABLE_DEBUG 1
 #include "debug.h"
 
-static char _stack[THREAD_STACKSIZE_DEFAULT];
+// static char _stack[THREAD_STACKSIZE_DEFAULT];
 
 int mode = 0;
 
@@ -92,30 +92,38 @@ static const shell_command_t commands[] = {
 #if SETTIME == 1
     {"settime", "set the time", settime},
 #endif
-    { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
+    // { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
+    { "udp", "send data over UDP and listen on UDP ports", udp_send_test },
+    // { "tcp", "send data over UDP and listen on UDP ports", tcp_send_test },
     { "ble", "ble utility", _nimble_netif_handler }
 };
 
-static void *_shell_thread(void *arg)
-{
-    (void)arg;
+// static void *_shell_thread(void *arg)
+// {
+//     (void)arg;
 
-    char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-    return NULL;
-}
+//     char line_buf[SHELL_DEFAULT_BUFSIZE];
+//     shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+//     return NULL;
+// }
 
 #if IS_USED(MODULE_SHELL)
 static void _start_shell(void)
 {
-    thread_create(_stack, sizeof(_stack), SHELL_PRIO, THREAD_CREATE_STACKTEST,
-                  _shell_thread, NULL, "shell");
+    // thread_create(_stack, sizeof(_stack), SHELL_PRIO, THREAD_CREATE_STACKTEST,
+    //               _shell_thread, NULL, "shell");
 }
 #endif
 
+void stall(void) {
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+}
+
 int send_mode(void) {
     wait_for_connection();
-    send_data();
+    // send_data();
+    stall();
     return 0;
 }
 
@@ -195,21 +203,21 @@ int main(void)
     /* start user interface */
     ui_init();
 
-    printf("\n\nAfter UI init\n");
+    // printf("\n\nAfter UI init\n");
 
-    xtimer_sleep(5);
+    // xtimer_sleep(5);
 
     /* initialize the wallclock (RTC) */
-    res = wallclock_init();
-    if (res != 0) {
-        puts("RTC:       FAIL");
-        ui_boot_msg("RTC:       FAIL");
-        return 1;
-    }
-    else {
-        puts("RTC:       OK");
-        ui_boot_msg("RTC:       OK");
-    }
+    // res = wallclock_init();
+    // if (res != 0) {
+    //     puts("RTC:       FAIL");
+    //     ui_boot_msg("RTC:       FAIL");
+    //     return 1;
+    // }
+    // else {
+    //     puts("RTC:       OK");
+    //     ui_boot_msg("RTC:       OK");
+    // }
 
     /* start storage module */
     res = stor_init();
@@ -238,11 +246,11 @@ int main(void)
 
 
     // Dummy longitudes and latitudes (Berlin coordinates)
-    static float lon = 52.520008;
-    static float lat = 13.404954;
+    // static float lon = 52.520008;
+    // static float lat = 13.404954;
 
-    static double lon1 = 2.520008123456;
-    static double lat1 = 113.404954123456;
+    // static double lon1 = 2.520008123456;
+    // static double lat1 = 113.404954123456;
 
     // printf("\nLongitude: %8.6f", lon);
     // printf("\nLatitude: %8.6f", lat);
@@ -250,11 +258,11 @@ int main(void)
     // printf("\nLon1: %8.6f", lon1);
     // printf("\nLat1: %8.6f", lat1);
 
-    printf("\nLongitude: %f", lon);
-    printf("\nLatitude: %f", lat);
+    // printf("\nLongitude: %f", lon);
+    // printf("\nLatitude: %f", lat);
 
-    printf("\nLon1: %d", (int)lon1);
-    printf("\nLat1: %g", lat1);
+    // printf("\nLon1: %d", (int)lon1);
+    // printf("\nLat1: %g", lat1);
 
 
     // Ask user to press Button 1 to start scanning 
@@ -264,11 +272,11 @@ int main(void)
 
 
 // #if defined(MODULE_PERIPH_GPIO_IRQ) && defined(BTN0_PIN) && defined(BTN1_PIN) && defined(BTN2_PIN) && defined(BTN3_PIN)
-    gpio_init_int(BTN0_PIN, GPIO_IN, GPIO_FALLING, set_gps_mode, NULL);
-    gpio_init_int(BTN1_PIN, GPIO_IN, GPIO_FALLING, set_scanner_mode, NULL);
-    // gpio_init_int(BTN2_PIN, GPIO_IN, GPIO_FALLING, set_send_mode, NULL);
-    // gpio_init_int(BTN2_PIN, GPIO_IN, GPIO_FALLING, nimble_scanner_stop, NULL);
-    gpio_init_int(BTN3_PIN, GPIO_IN, GPIO_FALLING, set_menu_mode, NULL);
+    // gpio_init_int(BTN0_PIN, GPIO_IN, GPIO_FALLING, set_gps_mode, NULL);
+    // gpio_init_int(BTN1_PIN, GPIO_IN, GPIO_FALLING, set_scanner_mode, NULL);
+    // // gpio_init_int(BTN2_PIN, GPIO_IN, GPIO_FALLING, set_send_mode, NULL);
+    // // gpio_init_int(BTN2_PIN, GPIO_IN, GPIO_FALLING, nimble_scanner_stop, NULL);
+    // gpio_init_int(BTN3_PIN, GPIO_IN, GPIO_FALLING, set_menu_mode, NULL);
 // #endif
 
 
@@ -296,36 +304,36 @@ int main(void)
     // scanner_mode(NULL);
 
     // application_modes app_mode = GPS_MODE;
-    xtimer_ticks32_t last_wakeup = xtimer_now();
+    // xtimer_ticks32_t last_wakeup = xtimer_now();
 
-    while(1)
-    {
-        switch (state)
-        {
-        case STATE_GPS:
-            gps_mode();
-            break;
-        case STATE_SCANNER:
-            printf("Scanner Mode is on");
-            scanner_mode(&lat, &lon, last_wakeup);
-            break;
-        case STATE_MENU:
-            menu_mode();
-            break;
-        case STATE_SEND:
-            send_mode();
-            break;
-        default:
-            printf("\nNo mode selected");
-            xtimer_sleep(1);
-        }
+    // while(1)
+    // {
+    //     switch (state)
+    //     {
+    //     case STATE_GPS:
+    //         gps_mode();
+    //         break;
+    //     case STATE_SCANNER:
+    //         printf("Scanner Mode is on");
+    //         scanner_mode(&lat, &lon, last_wakeup);
+    //         break;
+    //     case STATE_MENU:
+    //         menu_mode();
+    //         break;
+    //     case STATE_SEND:
+    //         send_mode();
+    //         break;
+    //     default:
+    //         printf("\nNo mode selected");
+    //         xtimer_sleep(1);
+    //     }
 
-        // xtimer_sleep(4);
-        printf("\nCurrent State: %d\n\n", state);
-        // nimble_scanner_stop();
-        printf("\nNimble Scanner Status: %d\n\n", nimble_scanner_status());
-        // idle_mode(NULL);
-    }
+    //     // xtimer_sleep(4);
+    //     printf("\nCurrent State: %d\n\n", state);
+    //     // nimble_scanner_stop();
+    //     printf("\nNimble Scanner Status: %d\n\n", nimble_scanner_status());
+    //     // idle_mode(NULL);
+    // }
 
 
 
@@ -347,6 +355,8 @@ int main(void)
     // }
 
     // LED0_OFF;
+
+    send_mode();
 
 
     return 0;

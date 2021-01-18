@@ -31,13 +31,27 @@
 #include "mtd_sdcard.h"
 #include "sdcard_spi.h"
 #include "sdcard_spi_params.h"
+#include "net/af.h"
+#include "net/ipv6/addr.h"
+// #include "net/sock/tcp.h"
+#include "net/sock/udp.h"
+// #include "sock_types.h"
 
 #include "app.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 #define FILENAME_MAXLEN         (30U)
+
+#define SERVER_MSG_QUEUE_SIZE   (8)
+#define SERVER_BUFFER_SIZE      (64)
+
+// static bool server_running = false;
+// static sock_udp_t sock;
+// static char server_buffer[SERVER_BUFFER_SIZE];
+// static char server_stack[THREAD_STACKSIZE_DEFAULT];
+// static msg_t server_msg_queue[SERVER_MSG_QUEUE_SIZE];
 
 /* Configure MTD device for the first SD card */
 extern sdcard_spi_t sdcard_spi_devs[ARRAY_SIZE(sdcard_spi_params)];
@@ -63,6 +77,118 @@ static mutex_t _buflock = MUTEX_INIT;
 static char _inbuf[FSBUF_SIZE];
 static char _fsbuf[FSBUF_SIZE];
 static size_t _inbuf_pos;
+// uint8_t buf[128];
+// sock_tcp_t sock;
+
+char* getDataFromFile(int length) {
+    int f = vfs_open("/f/1607727", O_RDONLY, 0);
+    if (f < 0) {
+        DEBUG("[stor] _flush: unable to open file\n");
+        return NULL;
+    } else {
+        int n = vfs_read(f, _fsbuf, length);
+        if (n < 0) {
+            DEBUG("[stor] _flush: unable to read data\n");
+            vfs_close(f);
+            return NULL;
+        }
+        vfs_close(f);
+        _fsbuf[n+1]='\0';
+        return _fsbuf;
+    }
+}
+
+int tcp_send_test(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    return 0;
+    // int res;
+    // // sock_tcp_ep_t remote = SOCK_IPV6_EP_ANY;
+    // sock_tcp_ep_t remote = { .family = AF_INET6, .netif = SOCK_ADDR_ANY_NETIF };
+
+    // remote.port = 12345;
+    // ipv6_addr_from_str((ipv6_addr_t *)&remote.addr,
+    //                    "FE80::6014:B3FF:FEB5:F6DE");
+    // if (sock_tcp_connect(&sock, &remote, 0, 0) < 0) {
+    //     puts("Error connecting sock");
+    //     return 1;
+    // }
+    // char* data = getDataFromFile(atoi(argv[1]));
+    // if ((res = sock_tcp_write(&sock, data, strlen(data))) < 0) {
+    //     puts("Errored on write");
+    // }
+    // else {
+    //     if ((res = sock_tcp_read(&sock, &buf, sizeof(buf),
+    //                              SOCK_NO_TIMEOUT)) < 0) {
+    //         puts("Disconnected");
+    //     }
+    //     printf("Read: %d\n", res);
+    // }
+    // sock_tcp_disconnect(&sock);
+    // return res;
+}
+
+int udp_send_test(int argc, char **argv)
+{
+    (void)argc;
+    // (void)argv;
+    int res;
+    sock_udp_ep_t remote = { .family = AF_INET6 };
+
+    char* addr = "FE80::6014:B3FF:FEB5:F6DE";
+
+    if (ipv6_addr_from_str((ipv6_addr_t *)&remote.addr, addr) == NULL) {
+        puts("Error: unable to parse destination address");
+        return 1;
+    }
+    if (ipv6_addr_is_link_local((ipv6_addr_t *)&remote.addr)) {
+        /* choose first interface when address is link local */
+        gnrc_netif_t *netif = gnrc_netif_iter(NULL);
+        remote.netif = (uint16_t)netif->pid;
+    }
+    remote.port = atoi("12345");
+    char* data = getDataFromFile(atoi(argv[1]));
+    if((res = sock_udp_send(NULL, data, strlen(data), &remote)) < 0) {
+        printf("could not send %d\n", res);
+    }
+    else {
+        printf("Success: send %u byte\n", (unsigned) res);
+    }
+    return 0;
+}
+
+int udp_send(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    // int res;
+    // sock_udp_ep_t remote = { .family = AF_INET6 };
+
+    // if (argc != 5) {
+    //     puts("Usage: udp send <ipv6-addr> <port> <payload>");
+    //     return -1;
+    // }
+
+    // if (ipv6_addr_from_str((ipv6_addr_t *)&remote.addr, argv[2]) == NULL) {
+    //     puts("Error: unable to parse destination address");
+    //     return 1;
+    // }
+    // if (ipv6_addr_is_link_local((ipv6_addr_t *)&remote.addr)) {
+    //     /* choose first interface when address is link local */
+    //     gnrc_netif_t *netif = gnrc_netif_iter(NULL);
+    //     remote.netif = (uint16_t)netif->pid;
+    // }
+    // remote.port = atoi(argv[3]);
+    // if((res = sock_udp_send(NULL, argv[4], strlen(argv[4]), &remote)) < 0) {
+    //     printf("could not send %d\n", res);
+    // }
+    // else {
+    //     printf("Success: send %u byte to %s\n", (unsigned) res, argv[2]);
+    // }
+    return 0;
+}
+
 
 int stor_init(void)
 {
@@ -222,25 +348,29 @@ int send_data(void) {
             strcpy(filename_line, "filename=");
             strcat(filename_line, entry->d_name);
             argv[4] = filename_line;
-            udp_cmd(argc, argv);
+            // udp_cmd(argc, argv);
+            udp_send(argc, argv);
             int n = vfs_read(f, _fsbuf, size);
             if (n < 0) {
                 DEBUG("[stor] _flush: unable to read data\n");
                 vfs_close(f);
                 argv[4] = "fail";
-                udp_cmd(argc, argv);
+                // udp_cmd(argc, argv);
+                udp_send(argc, argv);
                 continue;
             }
             while (n>0) {
                 _fsbuf[n+1]='\0';
-                printf("DATASIZE: %u\n",strlen(_fsbuf));
+                // printf("DATASIZE: %u\n",strlen(_fsbuf));
                 argv[4] = _fsbuf;
-                udp_cmd(argc, argv);
+                // udp_cmd(argc, argv);
+                udp_send(argc, argv);
                 // vfs_lseek(f,n,SEEK_CUR);
                 n = vfs_read(f, _fsbuf, size);
             }
             argv[4] = "close";
-            udp_cmd(argc, argv);
+            // udp_cmd(argc, argv);
+            udp_send(argc, argv);
             vfs_close(f);
         }
         res = vfs_readdir(dirp, entry);
@@ -252,6 +382,7 @@ int send_data(void) {
         }
     }
     argv[4] = "end";
-    udp_cmd(argc, argv);
+    // udp_cmd(argc, argv);
+    udp_send(argc, argv);
     return 0;
 }

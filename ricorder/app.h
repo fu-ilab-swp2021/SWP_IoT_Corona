@@ -64,6 +64,8 @@ void ui_update_gps(void);
 void ui_update_menu(void);
 
 int udp_cmd(int argc, char **argv);
+int udp_send_test(int argc, char **argv);
+int tcp_send_test(int argc, char **argv);
 int send_data(void);
 
 void set_gps_mode(void *arg);
