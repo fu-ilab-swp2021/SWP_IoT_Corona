@@ -43,6 +43,8 @@ typedef enum {
     STATE_SEND = 4
 } Modi;
 
+extern bool ENABLE_SEND;
+
 int wallclock_init(void);
 int wallclock_set_time(double time);
 void wallclock_now(uint32_t *secs, uint32_t *msecs);
@@ -65,8 +67,9 @@ void ui_update_menu(void);
 
 int udp_cmd(int argc, char **argv);
 int udp_send_test(int argc, char **argv);
+int udp_send_test2(int argc, char **argv);
 int tcp_send_test(int argc, char **argv);
-int send_data(void);
+int send_data(int size, char* filter);
 
 void set_gps_mode(void *arg);
 void set_scanner_mode(void *arg);

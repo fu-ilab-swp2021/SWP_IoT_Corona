@@ -33,6 +33,17 @@
 #include "sdcard_spi_params.h"
 #include "net/af.h"
 #include "net/ipv6/addr.h"
+#include "net/gnrc.h"
+#include "net/gnrc/ipv6/ext.h"
+#include "net/gnrc/ipv6/ext/frag.h"
+#include "net/gnrc/udp.h"
+#include "net/gnrc/ipv6/hdr.h"
+#include "net/gnrc/ipv6/nib.h"
+#include "net/gnrc/netif/raw.h"
+#include "net/netdev_test.h"
+
+#include "net/ipv6/addr.h"
+#include "net/ipv6/ext/frag.h"
 // #include "net/sock/tcp.h"
 #include "net/sock/udp.h"
 // #include "sock_types.h"
@@ -80,6 +91,70 @@ static char _fsbuf[FSBUF_SIZE];
 static size_t _inbuf_pos;
 // uint8_t buf[128];
 // sock_tcp_t sock;
+static gnrc_netif_t *eth_netif;
+
+static gnrc_pktsnip_t *_build_udp_packet(const ipv6_addr_t *dst,
+                                         unsigned payload_size,
+                                         gnrc_pktsnip_t *payload)
+{
+    udp_hdr_t *udp_hdr;
+    ipv6_hdr_t *ipv6_hdr;
+    gnrc_netif_hdr_t *netif_hdr;
+    gnrc_pktsnip_t *hdr;
+    (void)payload_size;
+
+    // if (payload == NULL) {
+    //     uint8_t *data;
+
+    //     payload = gnrc_pktbuf_add(NULL, NULL, payload_size, GNRC_NETTYPE_UNDEF);
+    //     if (payload == NULL) {
+    //         return NULL;
+    //     }
+    //     data = payload->data;
+    //     while (payload_size) {
+    //         unsigned test_sample_len = sizeof(TEST_SAMPLE) - 1;
+
+    //         if (test_sample_len > payload_size) {
+    //             test_sample_len = payload_size;
+    //         }
+
+    //         memcpy(data, TEST_SAMPLE, test_sample_len);
+    //         data += test_sample_len;
+    //         payload_size -= test_sample_len;
+    //     }
+    // }
+    // hdr = gnrc_udp_hdr_build(payload, 12345, 12345);
+    hdr = gnrc_udp_hdr_build(payload, 14640, 14640);
+    if (hdr == NULL) {
+        gnrc_pktbuf_release(payload);
+        return NULL;
+    }
+    udp_hdr = hdr->data;
+    udp_hdr->length = byteorder_htons(gnrc_pkt_len(hdr));
+    payload = hdr;
+    // hdr = gnrc_ipv6_hdr_build(payload, local_addr, dst);
+    hdr = gnrc_ipv6_hdr_build(payload, NULL, dst);
+    if (hdr == NULL) {
+        gnrc_pktbuf_release(payload);
+        return NULL;
+    }
+    ipv6_hdr = hdr->data;
+    ipv6_hdr->len = byteorder_htons(gnrc_pkt_len(payload));
+    ipv6_hdr->nh = PROTNUM_UDP;
+    ipv6_hdr->hl = CONFIG_GNRC_NETIF_DEFAULT_HL;
+    gnrc_udp_calc_csum(payload, hdr);
+    payload = hdr;
+    hdr = gnrc_netif_hdr_build(NULL, 0, NULL, 0);
+    if (hdr == NULL) {
+        gnrc_pktbuf_release(payload);
+        return NULL;
+    }
+    netif_hdr = hdr->data;
+    netif_hdr->if_pid = eth_netif->pid;
+    netif_hdr->flags |= GNRC_NETIF_HDR_FLAGS_MULTICAST;
+    hdr->next = payload;
+    return hdr;
+}
 
 char* getDataFromFile(int length) {
     int f = vfs_open("/f/1607727", O_RDONLY, 0);
@@ -94,8 +169,10 @@ char* getDataFromFile(int length) {
             return NULL;
         }
         vfs_close(f);
-        _fsbuf[n+1]='\0';
-        return _fsbuf;
+        _fsbuf[n]='\0';
+        char* res = (char*) malloc(n+1);
+        strncpy(res, _fsbuf, n+1);
+        return res;
     }
 }
 
@@ -159,19 +236,18 @@ int udp_send_test(int argc, char **argv)
     return 0;
 }
 
-int udp_send(int argc, char **argv)
+int udp_send_test2(int argc, char **argv)
 {
     (void)argc;
-    (void)argv;
-    // int res;
+    // (void)argv;
+    printf("----------------1------------------\n");
+    eth_netif = gnrc_netif_iter(NULL);
+    printf("MTU %u\n", eth_netif->ipv6.mtu);
     // sock_udp_ep_t remote = { .family = AF_INET6 };
 
-    // if (argc != 5) {
-    //     puts("Usage: udp send <ipv6-addr> <port> <payload>");
-    //     return -1;
-    // }
+    // char* addr = "FE80::6014:B3FF:FEB5:F6DE";
 
-    // if (ipv6_addr_from_str((ipv6_addr_t *)&remote.addr, argv[2]) == NULL) {
+    // if (ipv6_addr_from_str((ipv6_addr_t *)&remote.addr, addr) == NULL) {
     //     puts("Error: unable to parse destination address");
     //     return 1;
     // }
@@ -180,13 +256,84 @@ int udp_send(int argc, char **argv)
     //     gnrc_netif_t *netif = gnrc_netif_iter(NULL);
     //     remote.netif = (uint16_t)netif->pid;
     // }
-    // remote.port = atoi(argv[3]);
-    // if((res = sock_udp_send(NULL, argv[4], strlen(argv[4]), &remote)) < 0) {
+    // remote.port = atoi("12345");
+    // if((res = sock_udp_send(NULL, data, strlen(data), &remote)) < 0) {
     //     printf("could not send %d\n", res);
     // }
     // else {
-    //     printf("Success: send %u byte to %s\n", (unsigned) res, argv[2]);
+    //     printf("Success: send %u byte\n", (unsigned) res);
     // }
+
+    printf("----------------2------------------\n");
+    char* data;
+    gnrc_pktsnip_t *pkt, *payload = NULL;
+    ipv6_addr_t* dst = malloc(sizeof(ipv6_addr_t));
+    printf("----------------3------------------\n");
+    ipv6_addr_from_str(dst, "FE80::6014:B3FF:FEB5:F6DE");
+    printf("%u:%u:%u:%u:%u:%u:%u:%u\n", dst->u16[0].u16, dst->u16[1].u16, dst->u16[2].u16, dst->u16[3].u16, dst->u16[4].u16, dst->u16[5].u16, dst->u16[6].u16, dst->u16[7].u16);
+    printf("----------------4------------------\n");
+    unsigned payload_size = 0;
+
+    unsigned int fragsize = atoi(argv[1]);
+    while ((payload_size + fragsize) <= eth_netif->ipv6.mtu) {
+        data = getDataFromFile(fragsize);
+        // printf("%s\n", data);
+        pkt = gnrc_pktbuf_add(payload, data, strlen(data),
+                              GNRC_NETTYPE_UDP );
+        printf("%u | %u\n", pkt->size, strlen(data));
+        payload_size += pkt->size;
+        payload = pkt;
+    }
+    printf("PAYLOAD_SIZE: %u\n", payload_size);
+    printf("----------------9------------------\n");
+    pkt = _build_udp_packet(dst, 0, payload);
+    printf("----------------10------------------\n");
+    gnrc_pktsnip_t* pkt2 = pkt;
+    while(pkt2 != NULL) {
+        if (pkt2->size == 8) {
+            printf("SIZE %u\n", pkt2->size);
+            printf("%u\n",((udp_hdr_t*)pkt2->data)->dst_port.u16);
+            printf("%u %u\n",((gnrc_netif_hdr_t*)pkt2->data)->src_l2addr_len, ((gnrc_netif_hdr_t*)pkt2->data)->dst_l2addr_len);
+        }
+        if (pkt2->size == 40) {
+            printf("SIZE %u\n", pkt2->size);
+            printf("%u\n",((ipv6_hdr_t*)pkt2->data)->dst.u16[0].u16);
+        }
+        pkt2 = pkt2->next;
+    }
+    gnrc_ipv6_ext_frag_send_pkt(pkt, eth_netif->ipv6.mtu);
+    printf("----------------11------------------\n");
+    return 0;
+}
+
+int udp_send(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    int res;
+    sock_udp_ep_t remote = { .family = AF_INET6 };
+
+    if (argc != 5) {
+        puts("Usage: udp send <ipv6-addr> <port> <payload>");
+        return -1;
+    }
+
+    if (ipv6_addr_from_str((ipv6_addr_t *)&remote.addr, argv[2]) == NULL) {
+        puts("Error: unable to parse destination address");
+        return 1;
+    }
+    if (ipv6_addr_is_link_local((ipv6_addr_t *)&remote.addr)) {
+        /* choose first interface when address is link local */
+        gnrc_netif_t *netif = gnrc_netif_iter(NULL);
+        remote.netif = (uint16_t)netif->pid;
+    }
+    remote.port = atoi(argv[3]);
+    if((res = sock_udp_send(NULL, argv[4], strlen(argv[4]), &remote)) < 0) {
+        printf("could not send %d\n", res);
+    }
+    else {
+        // printf("Success: send %u byte to %s\n", (unsigned) res, argv[2]);
+    }
     return 0;
 }
 
@@ -328,7 +475,7 @@ void stor_flush(float *lat, float *lon)
     vfs_close(f);
 }
 
-int send_data(void) {
+int send_data(int size, char* filter) {
 
     int argc = 5;
     char** argv = (char**) malloc(argc * sizeof(char*));
@@ -336,7 +483,7 @@ int send_data(void) {
     argv[1] = "send";
     argv[2] = "FE80::6014:B3FF:FEB5:F6DE";
     argv[3] = "12345";
-    int size = 1024;
+    // int size = 128;
     int res;
     vfs_DIR* dirp = malloc(sizeof(vfs_DIR));
     res = vfs_opendir(dirp, "/f");
@@ -351,12 +498,18 @@ int send_data(void) {
     if (res==1) {
         printf("READ\n");
     }
-    while (res==1) {
+    while (res==1 && ENABLE_SEND) {
         printf("ENTRY %s\n",entry->d_name);
         char file[100];
         strcpy(file, "/f/");
         strcat(file, entry->d_name);
-        int f = vfs_open(file, O_RDONLY, 0);
+        int f;
+        if(filter != NULL && strcmp(entry->d_name, filter) != 0) {
+            printf("SKIPPING %s\n", file);
+            f = -1;
+        } else {
+            f = vfs_open(file, O_RDONLY, 0);
+        }
         if (f < 0) {
             DEBUG("[stor] _flush: unable to open file '%s'\n", file);
         } else {
@@ -376,7 +529,7 @@ int send_data(void) {
                 udp_send(argc, argv);
                 continue;
             }
-            while (n>0) {
+            while (n>0 && ENABLE_SEND) {
                 _fsbuf[n+1]='\0';
                 // printf("DATASIZE: %u\n",strlen(_fsbuf));
                 argv[4] = _fsbuf;

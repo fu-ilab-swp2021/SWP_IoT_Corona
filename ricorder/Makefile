@@ -45,31 +45,51 @@ USEMODULE += gnrc_sock_udp
 USEMODULE += gnrc_netdev_default
 USEMODULE += auto_init_gnrc_netif
 # USEMODULE += gnrc_ipv6_default
+# add dummy interface to test forwarding to smaller MTU
+USEMODULE += netdev_test
+# Specify the mandatory networking modules for IPv6
+USEMODULE += gnrc_ipv6_router_default
+USEMODULE += gnrc_icmpv6_error
+USEMODULE += gnrc_pktdump
+USEMODULE += gnrc_pktbuf_cmd
+# IPv6 extension headers
+USEMODULE += gnrc_ipv6_ext_frag
+# UDP support for payload
+USEMODULE += gnrc_udp
+USEMODULE += nimble_netif
+USEMODULE += gnrc_neterr
 
-USEMODULE += gnrc_tcp
+# USEMODULE += auto_init_gnrc_netif
 # USEMODULE += gnrc_sock_tcp
 # USEMODULE += lwip_ipv6_autoconfig
-# USEMODULE += ipv6_addr
 # USEMODULE += lwip_ipv6
 # USEMODULE += lwip_tcp
 # USEMODULE += lwip_sock_tcp
-# USEMODULE += sock_util
+USEMODULE += sock_util
+
+# USEMODULE += netdev_test
+# USEMODULE += gnrc_pktbuf_cmd
+# # IPv6 extension headers
+# USEMODULE += gnrc_ipv6_ext_frag
+
+# USEMODULE += gnrc_tcp
+# USEMODULE += ipv6_addr
 # USEMODULE += gnrc_sock_ip
-# USEMODULE += gnrc_sock
+USEMODULE += gnrc_sock
 # USEMODULE += gnrc_ipv6
 # USEMODULE += gnrc_ipv6_router
-# Activate ICMPv6 error messages
-USEMODULE += gnrc_icmpv6_error
-# Specify the mandatory networking modules for IPv6 and UDP
-USEMODULE += gnrc_ipv6_router_default
-USEMODULE += gnrc_udp
-# USEMODULE += gnrc_tcp
-# Add a routing protocol
+# # Activate ICMPv6 error messages
+# USEMODULE += gnrc_icmpv6_error
+# # Specify the mandatory networking modules for IPv6 and UDP
+# USEMODULE += gnrc_ipv6_router_default
+# USEMODULE += gnrc_udp
+# # USEMODULE += gnrc_tcp
+# # Add a routing protocol
 USEMODULE += gnrc_rpl
 USEMODULE += auto_init_gnrc_rpl
-# This application dumps received packets to STDIO using the pktdump module
+# # This application dumps received packets to STDIO using the pktdump module
 USEMODULE += gnrc_pktdump
-# Additional networking modules that can be dropped if not needed
+# # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
 
 CFLAGS += -DCONFIG_GNRC_IPV6_NIB_SLAAC=1
@@ -103,5 +123,7 @@ ifeq (nrf52dk,$(BOARD))
 endif
 
 CFLAGS += -DSETTIME=$(SETTIME)
+
+CFLAGS += -DCONFIG_GNRC_PKTBUF_SIZE=12000
 
 include $(RIOTBASE)/Makefile.include

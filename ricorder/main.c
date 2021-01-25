@@ -52,6 +52,8 @@ volatile Modi new_state = STATE_MENU;
 
 static volatile int STATE_SWITCHED = 0;
 
+bool ENABLE_SEND = true;
+
 #define ENABLE_DEBUG 1
 #include "debug.h"
 
@@ -93,12 +95,30 @@ int settime(int argc, char **argv) {
     return 0;
 }
 
+int cmd_send_data(int argc, char **argv) {
+    // (void)argc;
+    // (void)argv;
+    ENABLE_SEND = true;
+    send_data(atoi(argv[1]), argc > 2 ? argv[2] : NULL);
+    return 0;
+}
+
+int cmd_stop_send(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
+    ENABLE_SEND = false;
+    return 0;
+}
+
 static const shell_command_t commands[] = {
 #if SETTIME == 1
     {"settime", "set the time", settime},
 #endif
     // { "udp", "send data over UDP and listen on UDP ports", udp_cmd },
     { "udp", "send data over UDP and listen on UDP ports", udp_send_test },
+    { "udp2", "send data over UDP and listen on UDP ports", udp_send_test2 },
+    { "send", "send data over UDP and listen on UDP ports", cmd_send_data },
+    { "stop", "send data over UDP and listen on UDP ports", cmd_stop_send },
     // { "tcp", "send data over UDP and listen on UDP ports", tcp_send_test },
     { "ble", "ble utility", _nimble_netif_handler }
 };
