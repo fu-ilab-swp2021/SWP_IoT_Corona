@@ -37,7 +37,7 @@ export class DpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   showYAxisLabel = true;
   showXAxisLabel = true;
   xAxisLabel = 'Time';
-  yAxisLabel = 'Packet count';
+  yAxisLabel = 'Device count';
   timeline = true;
   autoScale = true;
   activeEntries: any[] = [];
