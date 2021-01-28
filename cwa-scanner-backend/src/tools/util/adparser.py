@@ -237,7 +237,6 @@ def devices_per_minute(path, files, options=None):
             if p["addr"] not in dpm2[t]:
                 dpm2[t].append(p["addr"])
                 dpm[t] += 1
-    print(dpm2)
     return dpm
 
 def rssi_distribution(path, files, options=None):
