@@ -12,17 +12,51 @@ static int position_uuid_callback(
     uint16_t attr_handle,
     struct ble_gatt_access_ctxt * ctxt,
     void *arg);
+// Callback is called when Manufacturer name is asked
+static int device_info_callback(
+    uint16_t conn_handle,
+    uint16_t attr_handle,
+    struct ble_gatt_access_ctxt * ctxt,
+    void *arg);
+// Callback is called when model number is read
+static int device_info_model_callback(
+    uint16_t conn_handle,
+    uint16_t attr_handle,
+    struct ble_gatt_access_ctxt * ctxt,
+    void *arg);
+
 
 // Struct defining the services
 static const struct ble_gatt_svc_def service_array[] = {
   {
+    /* Service: Device Information */
+    .type = BLE_GATT_SVC_TYPE_PRIMARY,
+    .uuid = BLE_UUID16_DECLARE(GATT_DEVICE_INFO_UUID),
+    .characteristics = (struct ble_gatt_chr_def[]) { {
+      /* Characteristic: * Manufacturer name */
+      .uuid = BLE_UUID16_DECLARE(GATT_MANUFACTURER_NAME_UUID),
+      .access_cb = device_info_callback,
+      .flags = BLE_GATT_CHR_F_READ,
+    }, {
+      /* Characteristic: * Model number string */
+      .uuid = BLE_UUID16_DECLARE(GATT_MODEL_NUMBER_UUID),
+      .access_cb = device_info_model_callback,
+      .flags = BLE_GATT_CHR_F_READ,
+    }, {
+      0,
+    }, }
+  },
+  {
+    /* Service: Location */
     .type = BLE_GATT_SVC_TYPE_PRIMARY,
     .uuid = BLE_UUID16_DECLARE(GATT_LOCATION_UUID),
     .characteristics = (struct ble_gatt_chr_def[]) { {
+      /* Characteristic: * Device Latitude */
       .uuid = BLE_UUID16_DECLARE(GATT_LATITUDE_UUID),
       .access_cb = position_uuid_callback,
       .flags = BLE_GATT_CHR_F_WRITE,
     }, {
+      /* Characteristic: * Device Longitude */
       .uuid = BLE_UUID16_DECLARE(GATT_LONGITUDE_UUID),
       .access_cb = position_uuid_callback,
       .flags = BLE_GATT_CHR_F_WRITE,
@@ -116,6 +150,36 @@ static int position_uuid_callback (
     start_advertise();
   }
   return 0;
+}
+
+static int device_info_callback(
+    uint16_t conn_handle,
+    uint16_t attr_handle,
+    struct ble_gatt_access_ctxt * ctxt,
+    void *arg) {
+  (void) conn_handle;
+  (void) attr_handle;
+  (void) arg;
+  int rc = os_mbuf_append(
+      ctxt->om, 
+      DEV_MANU,
+      strlen(DEV_MANU));
+  return rc;
+}
+
+static int device_info_model_callback(
+    uint16_t conn_handle,
+    uint16_t attr_handle,
+    struct ble_gatt_access_ctxt * ctxt,
+    void *arg) {
+  (void) conn_handle;
+  (void) attr_handle;
+  (void) arg;
+  int rc = os_mbuf_append(
+      ctxt->om, 
+      DEV_MODEL,
+      strlen(DEV_MODEL));
+  return rc;
 }
 
 // Run on startup
