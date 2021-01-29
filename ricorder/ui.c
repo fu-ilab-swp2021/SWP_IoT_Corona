@@ -31,7 +31,7 @@
 
 #define SSD1306_I2C_ADDR    (0xbc)
 
-#define STARTUP_DELAY       (3U)
+#define STARTUP_DELAY       (1U)
 #define UPDATE_INTERVAL     (250U * US_PER_MS)
 
 static u8g2_t _disp;
@@ -90,6 +90,7 @@ void ui_init(void)
     u8g2_SetFont(&_disp, u8g2_font_6x10_tf);
     _draw_logo();
     xtimer_sleep(STARTUP_DELAY);
+    printf("\n\nUI INIT");
 }
 
 void ui_boot_msg(const char *msg)
@@ -101,7 +102,7 @@ void ui_boot_msg(const char *msg)
     xtimer_sleep(1);
 }
 
-void ui_update(void)
+void ui_update_scanner(void)
 {
     scanner_stats_t stats;
     scanner_getcount(&stats);
@@ -126,7 +127,30 @@ void ui_update(void)
         u8g2_DrawStr(&_disp, 0, 10, time_str);
         u8g2_DrawStr(&_disp, 0, 21, "# Pkts:");
         u8g2_DrawStr(&_disp, 52, 21, pkt_str);
-        u8g2_DrawStr(&_disp, 0, 32, " # CWA:");
+        u8g2_DrawStr(&_disp, 0, 32, "# CWA :");
         u8g2_DrawStr(&_disp, 52, 32, cwa_str);
+        u8g2_DrawStr(&_disp, 0, 43, "__________________");
+        u8g2_DrawStr(&_disp, 0, 54, "BTN 4: Menu");
+    } while(u8g2_NextPage(&_disp));
+}
+
+void ui_update_gps(void)
+{
+    u8g2_FirstPage(&_disp);
+    do {
+        u8g2_DrawStr(&_disp, 0, 10, "Waiting for GPS..");
+        u8g2_DrawStr(&_disp, 0, 21, "__________________");
+        u8g2_DrawStr(&_disp, 0, 32, "BTN 4: Menu");
+    } while(u8g2_NextPage(&_disp));
+}
+
+void ui_update_menu(void)
+{
+    u8g2_FirstPage(&_disp);
+    do {
+        u8g2_DrawStr(&_disp, 0, 10, "Choose your Mode!");
+        u8g2_DrawStr(&_disp, 0, 21, "__________________");
+        u8g2_DrawStr(&_disp, 0, 32, "BTN 1: GPS Mode");
+        u8g2_DrawStr(&_disp, 0, 43, "BTN 2: Scanner Mode");
     } while(u8g2_NextPage(&_disp));
 }

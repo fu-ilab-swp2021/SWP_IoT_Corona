@@ -13,9 +13,7 @@ import { SwaggerUiComponent } from './swagger-ui/swagger-ui.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FileUploadComponent } from './file-upload/file-upload.component';
 import { NgxMatFileInputModule } from '@angular-material-components/file-input';
-import { ChartsModule, MDBBootstrapModule } from 'angular-bootstrap-md';
 import { HttpClientModule } from '@angular/common/http';
-import { AgmCoreModule } from '@agm/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -60,13 +58,7 @@ import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
     MatDialogModule,
     MatCardModule,
     MatSliderModule,
-    MDBBootstrapModule.forRoot(),
-    ChartsModule,
     HttpClientModule,
-    AgmCoreModule.forRoot({
-      apiKey:
-        'AIzaSyCdTfIec7tel-8LtwjDfueUOlE3TCWoyrY' + '&libraries=visualization',
-    }),
     NgxChartsModule,
   ],
   providers: [],
