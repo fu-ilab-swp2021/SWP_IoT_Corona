@@ -10,7 +10,6 @@ from werkzeug.utils import secure_filename
 import numpy as np
 import json
 
-
 def addNoiseToCoordinates(packets):
     lat = 52.4403357+(np.random.rand()-0.5)/100,
     lng = 13.2416195+(np.random.rand()-0.5)/100
