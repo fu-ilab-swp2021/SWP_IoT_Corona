@@ -21,8 +21,8 @@
 #define APP_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "xtimer.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,8 +39,11 @@ typedef struct {
 typedef enum {
     STATE_GPS = 1,
     STATE_SCANNER = 2,
-    STATE_MENU = 3
+    STATE_MENU = 3,
+    STATE_SEND = 4
 } Modi;
+
+extern bool ENABLE_SEND;
 
 int wallclock_init(void);
 int wallclock_set_time(double time);
@@ -61,6 +64,12 @@ void ui_boot_msg(const char *msg);
 void ui_update_scanner(void);
 void ui_update_gps(void);
 void ui_update_menu(void);
+
+int udp_cmd(int argc, char **argv);
+int udp_send_test(int argc, char **argv);
+int udp_send_test2(int argc, char **argv);
+int tcp_send_test(int argc, char **argv);
+int send_data(int size, char* filter);
 
 void set_gps_mode(void *arg);
 void set_scanner_mode(void *arg);
