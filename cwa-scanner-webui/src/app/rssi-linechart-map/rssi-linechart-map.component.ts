@@ -7,7 +7,6 @@ import {
 } from '@angular/core';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { BlePacket } from '../models/cwa-packet.model';
 import { DataService } from '../services/data.service';
 
@@ -50,6 +49,7 @@ export class RssiLinechartMapComponent
   map: google.maps.Map = null;
   heatmap: google.maps.visualization.HeatmapLayer = null;
   @ViewChild('ngx_chart') chart: LineChartComponent;
+  @ViewChild('map') mapEl;
   data: BlePacket[];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
@@ -91,14 +91,25 @@ export class RssiLinechartMapComponent
 
   ngOnInit(): void {
     this.newDataFromService(this.dataService.dataFiles);
-    this.dataSubscription = this.dataService.dataChanged.subscribe(this.newDataFromService.bind(this));
+    this.dataSubscription = this.dataService.dataChanged.subscribe(
+      this.newDataFromService.bind(this)
+    );
   }
 
   ngOnDestroy() {
     this.dataSubscription?.unsubscribe();
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    const map = new google.maps.Map(this.mapEl.nativeElement, {
+      center: {
+        lat: this.lat,
+        lng: this.lng,
+      },
+      zoom: this.zoom,
+    });
+    this.onMapLoad(map);
+  }
 
   formatXAxisLabel(value: Date) {
     return value.toLocaleTimeString();
