@@ -23,10 +23,12 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileUploadDialogComponent } from './file-upload/file-upload-dialog.component';
 import { HomeComponent } from './home/home.component';
 import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
 import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @NgModule({
   declarations: [
@@ -60,6 +62,8 @@ import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
     MatSliderModule,
     HttpClientModule,
     NgxChartsModule,
+    MatTooltipModule,
+    MatSlideToggleModule
   ],
   providers: [],
   bootstrap: [AppComponent],

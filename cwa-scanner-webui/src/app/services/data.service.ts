@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BlePacket } from '../models/cwa-packet.model';
+import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
 import { HttpService } from './http.service';
 import { flatMap, map, tap } from 'rxjs/operators';
-import { of, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
+import { FormControl } from '@angular/forms';
 
 export enum AGGREGATION_TYPES {
   ppm = 'packets_per_minute',
@@ -18,70 +19,73 @@ export interface UploadedDataItem {
   providedIn: 'root',
 })
 export class DataService {
-  dataFiles: UploadedDataItem[] = [];
-  filenames: string[] = [];
+  dataFilesInfo: DataFileInfo[] = [];
   initialData = false;
   initialData$ = new Subject();
+  newDataArrived = new Subject();
   dataChanged = new Subject();
+  visibilityChanged = new Subject<DataFileInfo>();
+
+  get filenames() {
+    return this.dataFilesInfo.map((f) => f.filename);
+  }
 
   constructor(private httpService: HttpService) {}
 
-  addDataFile(file: BlePacket[], filename: string) {
-    if (!this.dataFiles.find(df => df.name === filename)) {
-      this.dataFiles.push({
-        data: file,
-        name: filename,
-      });
-    }
-  }
-
-  getDataFiles() {
-    return this.dataFiles;
+  getDataFiles(): Observable<UploadedDataItem[]> {
+    return this.httpService.getDataFiles().pipe(
+      tap((dataFiles: UploadedDataItem[]) => {
+        this.newDataArrived.next(dataFiles);
+      })
+    );
   }
 
   updateDataFilesObs() {
     return this.getFilenamesRemote().pipe(
-      map((filenames) => {
-        const newFile = !filenames.every((f) => this.filenames.includes(f));
-        this.filenames = filenames;
+      map((info) => {
+        const newFile = !info.every((f) => this.dataFilesInfo.find(df => df.filename === f.filename));
+        info.forEach(f => {
+          const f3 = this.dataFilesInfo.find(f2 => f2.filename === f.filename);
+          f.visisble = f3 ? f3.visisble : false;
+        });
+        this.dataFilesInfo = info;
         if (newFile) {
-          return this.httpService.getDataFiles().pipe(map((dataFiles) => {
-            this.dataFiles = dataFiles;
-            this.dataChanged.next(this.dataFiles);
-            return this.dataFiles;
-          }));
-        } else {
-          return of(this.dataFiles);
+          this.dataChanged.next();
         }
-      }),
-      flatMap(v => v)
+        return info;
+      })
     );
   }
 
-  updateDataFiles() {
+  updateFilenames() {
     this.updateDataFilesObs().subscribe();
   }
 
   getFilenamesRemote() {
     return this.httpService.getFilenames();
   }
-  updateFilenames() {
-    return this.httpService.getFilenames().subscribe((filenames) => {
-      this.filenames = filenames;
-    });
-  }
 
   deleteDataFile(name) {
-    return this.httpService.deleteDatafile(name).pipe(tap(() => {
-      this.dataFiles = this.dataFiles.filter((d) => d.name !== name);
-      this.filenames = this.filenames.filter((f) => f !== name);
-      this.dataChanged.next(this.dataFiles);
-    }, (error) => {
-      console.error(error);
-    }));
+    return this.httpService.deleteDatafile(name).pipe(
+      tap(
+        () => {
+          this.dataFilesInfo = this.dataFilesInfo.filter(
+            (f) => f.filename !== name
+          );
+          this.dataChanged.next();
+        },
+        (error) => {
+          console.error(error);
+        }
+      )
+    );
   }
 
-  getAggregatedData(aggregationType, options?) {
-    return this.httpService.getAggregatedData(aggregationType, this.filenames, options);
+  getAggregatedData(aggregationType, options?): Observable<AggregationPacket<any>[]> {
+    return this.httpService.getAggregatedData(
+      aggregationType,
+      this.filenames,
+      options
+    );
   }
 }

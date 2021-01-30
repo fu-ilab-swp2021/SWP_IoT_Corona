@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BlePacket } from '../models/cwa-packet.model';
+import { Observable } from 'rxjs';
+import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
 import { UploadedDataItem } from './data.service';
 
 @Injectable({
@@ -15,8 +16,8 @@ export class HttpService {
     return this.http.post('/api/upload-cwa-data-from-file', formData);
   }
 
-  getFilenames() {
-    return this.http.get<string[]>('/api/cwa-filenames');
+  getFilenames(): Observable<DataFileInfo[]> {
+    return this.http.get<DataFileInfo[]>('/api/cwa-filenames');
   }
 
   deleteDatafile(name: string) {
@@ -29,8 +30,8 @@ export class HttpService {
     });
   }
 
-  getAggregatedData(aggregationType, filenames, options?) {
-    return this.http.post<any>('/api/aggregate-data', {
+  getAggregatedData(aggregationType, filenames, options?): Observable<AggregationPacket<any>[]> {
+    return this.http.post<AggregationPacket<any>[]>('/api/aggregate-data', {
       dataFiles: filenames,
       type: aggregationType,
       options

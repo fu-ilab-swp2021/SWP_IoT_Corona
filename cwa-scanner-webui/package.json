@@ -32,8 +32,10 @@
     "hammerjs": "~2.0.8",
     "mdbootstrap": "^4.19.2",
     "rxjs": "~6.5.4",
+    "save-svg-as-png": "^1.4.17",
     "swagger-ui-dist": "^3.37.2",
     "tslib": "^2.0.0",
+    "types-save-svg-as-png": "github:CinnamonRage/types-save-svg-as-png",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {

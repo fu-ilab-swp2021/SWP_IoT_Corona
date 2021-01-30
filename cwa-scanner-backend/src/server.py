@@ -5,10 +5,18 @@ from flask import Flask, jsonify, request, url_for, redirect, Response
 from flask.helpers import send_from_directory
 from flask_swagger import swagger
 from flask_cors import CORS
-from .tools.util.adparser import ADParser, aggregate
+from .tools.util.adparser import ADParser, aggregate, readData
 from werkzeug.utils import secure_filename
 import numpy as np
 import json
+
+data_files = []
+
+def fileExists(filename):
+    for f in data_files:
+        if f["filename"] == filename:
+            return f
+    return None
 
 def addNoiseToCoordinates(packets):
     lat = 52.4403357+(np.random.rand()-0.5)/100,
@@ -49,13 +57,25 @@ class Server():
                 onlyfiles = [f for f in listdir(self.app.config['UPLOAD_PATH']) if isfile(join(self.app.config['UPLOAD_PATH'], f))]
                 for filename in onlyfiles:
                     path = join(self.app.config['UPLOAD_PATH'], filename)
-                    if not filename.endswith(".json") and (filename+".json") not in onlyfiles:
-                        res = ADParser([path], fromfile=True)
-                        ps = res.getPkts()
-                        addNoiseToCoordinates(ps)
-                        f = open(path+".json", "w")
-                        f.write(json.dumps(ps))
+                    if not filename.endswith(".json"):
+                        if (filename+".json") not in onlyfiles:
+                            res = ADParser([path], fromfile=True)
+                            ps = res.getPkts()
+                            print(filename)
+                            print(len(ps))
+                            addNoiseToCoordinates(ps)
+                            f = open(path+".json", "w")
+                            f.write(json.dumps(ps))
+                            f.close()
+                        f = open(path+".json", "r")
+                        s = f.read()
                         f.close()
+                        ps = json.loads(s)
+                        data_files.append({
+                            "filename": filename,
+                            "first": ps[0]["time"] * 1000,
+                            "last": ps[-1]["time"] * 1000
+                        })
             except Exception as e:
                 print(e)
                 exit(1)
@@ -110,6 +130,14 @@ class Server():
                 f = open(path+".json", "w")
                 f.write(json.dumps(ps))
                 f.close()
+            pExists = fileExists(file.filename)
+            if pExists:
+                data_files.remove(pExists)
+            data_files.append({
+                "filename": file.filename,
+                "first": ps[0]["time"] * 1000,
+                "last": ps[-1]["time"] * 1000
+            })
             return jsonify(ps), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data/<filename>', methods=['POST'])
@@ -140,6 +168,14 @@ class Server():
             f = open(path+".json", "w")
             f.write(json.dumps(ps))
             f.close()
+            pExists = fileExists(filename)
+            if pExists:
+                data_files.remove(pExists)
+            data_files.append({
+                "filename": filename,
+                "first": ps[0]["time"] * 1000,
+                "last": ps[-1]["time"] * 1000
+            })
             return jsonify(ps), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/cwa-data/<filename>', methods=['GET'])
@@ -205,10 +241,13 @@ class Server():
                     description: The data could not be sent
             """
             try:
-                path = join(self.app.config['UPLOAD_PATH'], filename)
-                if os.path.exists(path) and os.path.exists(path+".json"):
-                    os.remove(path)
-                    os.remove(path+".json")
+                pExists = fileExists(filename)
+                if pExists:
+                    data_files.remove(pExists)
+                    path = join(self.app.config['UPLOAD_PATH'], filename)
+                    if os.path.exists(path) and os.path.exists(path+".json"):
+                        os.remove(path)
+                        os.remove(path+".json")
                 else:
                     return jsonify({"error": "Data not found"}),404
             except Exception as e:
@@ -268,18 +307,13 @@ class Server():
                 - application/json
             responses:
                 200:
-                    description: The requested filenames
+                    description: The requested filenames and first and last timestamp of each file
                 404:
                     description: The data was not found
                 500:
                     description: The data could not be sent
             """
-            try:
-                onlyfiles = [f for f in listdir(self.app.config['UPLOAD_PATH']) if isfile(join(self.app.config['UPLOAD_PATH'], f)) and not f.endswith(".json")]
-            except Exception as e:
-                print(e)
-                return jsonify({"error": "Data not found"}),404
-            return jsonify(onlyfiles), 200
+            return jsonify(data_files), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/aggregate-data', methods=['POST'])
         def aggregateData():

@@ -17,3 +17,24 @@
 .active-link {
     background-color:  rgba(200,100,200,0.4);
 }
+
+.file-menu-item {
+    display: flex;
+    align-items: center;
+    
+    .flex-spacer {
+        margin-right: 10px;
+    }
+    
+    .visible-toggle {
+        margin-left: 10px;
+    }
+}
+
+.flex-spacer {
+    flex: 1 1 auto;
+}
+
+::ng-deep.mat-menu-panel.file-menu {
+    max-width: unset;
+}

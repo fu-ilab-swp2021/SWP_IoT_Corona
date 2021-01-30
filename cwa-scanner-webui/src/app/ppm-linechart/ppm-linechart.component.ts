@@ -8,7 +8,7 @@ import {
 import { FormControl } from '@angular/forms';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
-import { PpmPacket } from '../models/cwa-packet.model';
+import { AggregationPacket, PpmPacket } from '../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../services/data.service';
 
 interface ChartSeries {
@@ -28,7 +28,6 @@ interface ChartSeries {
 export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   aggregationType = AGGREGATION_TYPES.ppm;
   sliderFC = new FormControl(60);
-  noData = true;
   legend = true;
   showLabels = true;
   animations = true;
@@ -43,11 +42,28 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   activeEntries: any[] = [];
   colorScheme = 'cool';
   @ViewChild('ngx_chart') chart: LineChartComponent;
-  data: PpmPacket;
+  data: AggregationPacket<PpmPacket>[];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
   dataSubscription: Subscription;
+  visibleSupscription: Subscription;
+  get flatData() {
+    return this.data.reduce((previous, current) => {
+      if (current.visisble) {
+        Object.keys(current.data).forEach(t => {
+          if (t in previous) {
+            previous[t].total += current.data[t].total;
+            previous[t].cwa += current.data[t].cwa;
+            previous[t].non_cwa += current.data[t].non_cwa;
+          } else {
+            previous[t] = current.data[t];
+          }
+        });
+      }
+      return previous;
+    }, {});
+  }
 
   constructor(private dataService: DataService) {}
 
@@ -77,22 +93,23 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataService
-      .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
-      .subscribe((data: PpmPacket) => {
-        this.newDataFromService(data);
-      });
+    this.dataService.updateFilenames();
     this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
       this.dataService
         .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
-        .subscribe((data: PpmPacket) => {
+        .subscribe((data: AggregationPacket<PpmPacket>[]) => {
           this.newDataFromService(data);
         });
+    });
+    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
+      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
+      this.chartDataFromData();
     });
   }
 
   ngOnDestroy() {
     this.dataSubscription?.unsubscribe();
+    this.visibleSupscription?.unsubscribe();
   }
 
   ngAfterViewInit() {}
@@ -101,29 +118,22 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
     return value.toLocaleTimeString();
   }
 
-  copyData(data: ChartSeries[]): ChartSeries[] {
-    const dataCopy = [];
-    for (const s of data) {
-      const s2 = {
-        name: s.name,
-        show: s.show,
-        series: [],
-      };
-      for (const p of s.series) {
-        s2.series.push(p);
-      }
-      dataCopy.push(s2);
-    }
-    return dataCopy;
-  }
-
-  newDataFromService(data) {
+  newDataFromService(data: AggregationPacket<PpmPacket>[]) {
     this.dataChanged(data);
   }
 
-  dataChanged(d: PpmPacket) {
-    this.noData = false;
-    this.data = d;
+  dataChanged(d: AggregationPacket<PpmPacket>[]) {
+    this.data = d.map((df) => ({
+      filename: df.filename,
+      data: df.data,
+      visisble: this.dataService.dataFilesInfo.find(
+        (f) => f.filename === df.filename
+      ).visisble,
+    }));
+    this.chartDataFromData();
+  }
+
+  chartDataFromData() {
     this.chartData = [
       {
         name: 'Total packets per interval',
@@ -141,28 +151,27 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
         show: true,
       },
     ];
-    Object.keys(this.data).forEach((k) => {
+    Object.keys(this.flatData).forEach((k) => {
       this.chartData[0].series.push({
         name: new Date(Number(k) * 1000),
-        value: this.data[k].total,
+        value: this.flatData[k].total,
       });
       this.chartData[1].series.push({
         name: new Date(Number(k) * 1000),
-        value: this.data[k].cwa,
+        value: this.flatData[k].cwa,
       });
       this.chartData[2].series.push({
         name: new Date(Number(k) * 1000),
-        value: this.data[k].non_cwa,
+        value: this.flatData[k].non_cwa,
       });
     });
     this.chartData = [...this.chartData];
-    this.chartDataCopy = this.copyData(this.chartData);
   }
 
   changeInterval(interval: number) {
     this.dataService
       .getAggregatedData(this.aggregationType, {interval})
-      .subscribe((data: PpmPacket) => {
+      .subscribe((data: AggregationPacket<PpmPacket>[]) => {
         this.newDataFromService(data);
       });
   }

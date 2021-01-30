@@ -8,7 +8,7 @@ import {
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
 import { BlePacket } from '../models/cwa-packet.model';
-import { DataService } from '../services/data.service';
+import { DataService, UploadedDataItem } from '../services/data.service';
 
 interface ChartSeries {
   show: boolean;
@@ -17,6 +17,12 @@ interface ChartSeries {
     name: any;
     value: any;
   }[];
+}
+
+interface FileBlePackets {
+  filename: string;
+  data: BlePacket[];
+  visisble: boolean;
 }
 
 @Component({
@@ -29,7 +35,6 @@ export class RssiLinechartMapComponent
   lat = 52.4403357;
   lng = 13.2416195;
   zoom = 12;
-  noData = true;
   legend = true;
   showLabels = true;
   animations = true;
@@ -50,12 +55,23 @@ export class RssiLinechartMapComponent
   heatmap: google.maps.visualization.HeatmapLayer = null;
   @ViewChild('ngx_chart') chart: LineChartComponent;
   @ViewChild('map') mapEl;
-  data: BlePacket[];
+  data: FileBlePackets[] = [];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
-  colors;
   dataSubscription: Subscription;
+  visibleSupscription: Subscription;
+  get flatData(): BlePacket[] {
+    return this.data.reduce(
+      (previous: BlePacket[], current: FileBlePackets) => {
+        if (current.visisble) {
+          previous = previous.concat(current.data);
+        }
+        return previous;
+      },
+      []
+    );
+  }
 
   constructor(private dataService: DataService) {}
 
@@ -85,19 +101,22 @@ export class RssiLinechartMapComponent
     return this.chartData.map((p) => p.name);
   }
 
-  // colors() {
-  //   return new ColorHelper(this.colorScheme, 'ordinal', this.chartNames());
-  // }
-
   ngOnInit(): void {
-    this.newDataFromService(this.dataService.dataFiles);
-    this.dataSubscription = this.dataService.dataChanged.subscribe(
-      this.newDataFromService.bind(this)
-    );
+    this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
+      this.dataService.getDataFiles().subscribe((dataFiles) => {
+        this.newDataFromService(dataFiles);
+      });
+    });
+    this.dataService.updateFilenames();
+    this.visibleSupscription = this.dataService.visibilityChanged.subscribe((f) => {
+      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
+      this.chartAndHeatMapFromData();
+    });
   }
 
   ngOnDestroy() {
     this.dataSubscription?.unsubscribe();
+    this.visibleSupscription?.unsubscribe();
   }
 
   ngAfterViewInit() {
@@ -135,24 +154,27 @@ export class RssiLinechartMapComponent
     this.heatmap?.setMap(null);
     this.heatmap = new google.maps.visualization.HeatmapLayer({
       map: this.map,
-      data: this.data
+      data: this.flatData
         .filter((p) => !this.hideSeries.includes(p.addr))
         .map((p) => new google.maps.LatLng(p.location.lat, p.location.lng)),
       radius: 30,
     });
   }
 
-  newDataFromService(dataFiles) {
-    let d: BlePacket[] = [];
-    dataFiles.forEach((f) => (d = d.concat(f.data)));
-    this.dataChanged(d);
+  newDataFromService(dataFiles: UploadedDataItem[]) {
+    this.data = dataFiles.map((df) => ({
+      filename: df.name,
+      data: df.data,
+      visisble: this.dataService.dataFilesInfo.find(
+        (f) => f.filename === df.name
+      ).visisble,
+    }));
+    this.chartAndHeatMapFromData();
   }
 
-  dataChanged(d: BlePacket[]) {
-    this.noData = false;
-    this.data = d;
+  chartAndHeatMapFromData() {
     this.chartData = [];
-    for (const p of this.data) {
+    for (const p of this.flatData) {
       let s = this.chartData.find((p2) => p2.name === p.addr);
       if (!s) {
         s = {

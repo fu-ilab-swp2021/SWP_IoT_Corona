@@ -8,7 +8,7 @@ import {
 import { FormControl } from '@angular/forms';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
-import { DpmPacket } from '../models/cwa-packet.model';
+import { AggregationPacket, DpmPacket } from '../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../services/data.service';
 
 interface ChartSeries {
@@ -28,7 +28,6 @@ interface ChartSeries {
 export class DpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   aggregationType = AGGREGATION_TYPES.dpm;
   sliderFC = new FormControl(60);
-  noData = true;
   legend = true;
   showLabels = true;
   animations = true;
@@ -43,11 +42,26 @@ export class DpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   activeEntries: any[] = [];
   colorScheme = 'cool';
   @ViewChild('ngx_chart') chart: LineChartComponent;
-  data: DpmPacket;
+  data: AggregationPacket<DpmPacket>[];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
   dataSubscription: Subscription;
+  visibleSupscription: Subscription;
+  get flatData() {
+    return this.data.reduce((previous, current) => {
+      if (current.visisble) {
+        Object.keys(current.data).forEach(t => {
+          if (t in previous) {
+            previous[t] += current.data[t];
+          } else {
+            previous[t] = current.data[t];
+          }
+        });
+      }
+      return previous;
+    }, {});
+  }
 
   constructor(private dataService: DataService) {}
 
@@ -77,26 +91,25 @@ export class DpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataService
-      .getAggregatedData(this.aggregationType, {
-        interval: this.sliderFC.value,
-      })
-      .subscribe((data: DpmPacket) => {
-        this.newDataFromService(data);
-      });
+    this.dataService.updateFilenames();
     this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
       this.dataService
         .getAggregatedData(this.aggregationType, {
           interval: this.sliderFC.value,
         })
-        .subscribe((data: DpmPacket) => {
+        .subscribe((data: AggregationPacket<DpmPacket>[]) => {
           this.newDataFromService(data);
         });
+    });
+    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
+      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
+      this.chartDataFromData();
     });
   }
 
   ngOnDestroy() {
     this.dataSubscription?.unsubscribe();
+    this.visibleSupscription?.unsubscribe();
   }
 
   ngAfterViewInit() {}
@@ -105,29 +118,22 @@ export class DpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
     return value.toLocaleTimeString();
   }
 
-  copyData(data: ChartSeries[]): ChartSeries[] {
-    const dataCopy = [];
-    for (const s of data) {
-      const s2 = {
-        name: s.name,
-        show: s.show,
-        series: [],
-      };
-      for (const p of s.series) {
-        s2.series.push(p);
-      }
-      dataCopy.push(s2);
-    }
-    return dataCopy;
-  }
-
-  newDataFromService(data) {
+  newDataFromService(data: AggregationPacket<DpmPacket>[]) {
     this.dataChanged(data);
   }
 
-  dataChanged(d: DpmPacket) {
-    this.noData = false;
-    this.data = d;
+  dataChanged(d: AggregationPacket<DpmPacket>[]) {
+    this.data = d.map((df) => ({
+      filename: df.filename,
+      data: df.data,
+      visisble: this.dataService.dataFilesInfo.find(
+        (f) => f.filename === df.filename
+      ).visisble,
+    }));
+    this.chartDataFromData();
+  }
+
+  chartDataFromData() {
     this.chartData = [
       {
         name: '#Devices per interval',
@@ -135,20 +141,19 @@ export class DpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
         show: true,
       }
     ];
-    Object.keys(this.data).forEach((k) => {
+    Object.keys(this.flatData).forEach((k) => {
       this.chartData[0].series.push({
         name: new Date(Number(k) * 1000),
-        value: this.data[k],
+        value: this.flatData[k],
       });
     });
     this.chartData = [...this.chartData];
-    this.chartDataCopy = this.copyData(this.chartData);
   }
 
   changeInterval(interval: number) {
     this.dataService
       .getAggregatedData(this.aggregationType, { interval })
-      .subscribe((data: DpmPacket) => {
+      .subscribe((data: AggregationPacket<DpmPacket>[]) => {
         this.newDataFromService(data);
       });
   }

@@ -8,9 +8,8 @@ import {
 import { FormControl } from '@angular/forms';
 import { BarVerticalComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
-import { RssiDistPacket } from '../models/cwa-packet.model';
+import { AggregationPacket, RssiDistPacket } from '../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../services/data.service';
-
 interface ChartSeries {
   name: any;
   value: any;
@@ -25,7 +24,6 @@ export class RssiDistributionComponent
   implements OnInit, AfterViewInit, OnDestroy {
   aggregationType = AGGREGATION_TYPES.rssi_dist;
   sliderFC = new FormControl(60);
-  noData = true;
   legend = false;
   showLabels = true;
   animations = true;
@@ -40,11 +38,26 @@ export class RssiDistributionComponent
   activeEntries: any[] = [];
   colorScheme = 'cool';
   @ViewChild('ngx_chart') chart: BarVerticalComponent;
-  data: RssiDistPacket;
+  data: AggregationPacket<RssiDistPacket>[];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
   dataSubscription: Subscription;
+  visibleSupscription: Subscription;
+  get flatData() {
+    return this.data.reduce((previous, current) => {
+      if (current.visisble) {
+        Object.keys(current.data).forEach(t => {
+          if (t in previous) {
+            previous[t] += current.data[t];
+          } else {
+            previous[t] = current.data[t];
+          }
+        });
+      }
+      return previous;
+    }, {});
+  }
 
   constructor(private dataService: DataService) {}
 
@@ -61,26 +74,25 @@ export class RssiDistributionComponent
   }
 
   ngOnInit(): void {
-    this.dataService
-      .getAggregatedData(this.aggregationType, {
-        interval: this.sliderFC.value,
-      })
-      .subscribe((data: RssiDistPacket) => {
-        this.newDataFromService(data);
-      });
+    this.dataService.updateFilenames();
     this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
       this.dataService
         .getAggregatedData(this.aggregationType, {
           interval: this.sliderFC.value,
         })
-        .subscribe((data: RssiDistPacket) => {
+        .subscribe((data: AggregationPacket<RssiDistPacket>[]) => {
           this.newDataFromService(data);
         });
+    });
+    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
+      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
+      this.chartDataFromData();
     });
   }
 
   ngOnDestroy() {
     this.dataSubscription?.unsubscribe();
+    this.visibleSupscription?.unsubscribe();
   }
 
   ngAfterViewInit() {}
@@ -89,37 +101,37 @@ export class RssiDistributionComponent
     return value.toLocaleTimeString();
   }
 
-  copyData(data: ChartSeries[]): ChartSeries[] {
-    const dataCopy = [];
-    for (const s of data) {
-      dataCopy.push(s);
-    }
-    return dataCopy;
-  }
-
-  newDataFromService(data) {
+  newDataFromService(data: AggregationPacket<RssiDistPacket>[]) {
     this.dataChanged(data);
   }
 
-  dataChanged(d: RssiDistPacket) {
-    this.noData = false;
-    this.data = d;
+  dataChanged(d: AggregationPacket<RssiDistPacket>[]) {
+    this.data = d.map((df) => ({
+      filename: df.filename,
+      data: df.data,
+      visisble: this.dataService.dataFilesInfo.find(
+        (f) => f.filename === df.filename
+      ).visisble,
+    }));
+    this.chartDataFromData();
+  }
+
+  chartDataFromData() {
     this.chartData = [];
-    Object.keys(this.data).forEach((k) => {
+    Object.keys(this.flatData).forEach((k) => {
       this.chartData.push({
         name: k,
-        value: this.data[k],
+        value: this.flatData[k],
       });
     });
     this.chartData.sort((a, b) => Number(a.name) - Number(b.name));
     this.chartData = [...this.chartData];
-    this.chartDataCopy = this.copyData(this.chartData);
   }
 
   changeInterval(interval: number) {
     this.dataService
       .getAggregatedData(this.aggregationType, { interval })
-      .subscribe((data: RssiDistPacket) => {
+      .subscribe((data: AggregationPacket<RssiDistPacket>[]) => {
         this.newDataFromService(data);
       });
   }

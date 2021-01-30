@@ -44,8 +44,7 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
   upload() {
     this.httpService.uploadFile(this.file).subscribe(
       (d: BlePacket[]) => {
-        this.dataService.addDataFile(d, this.file.name);
-        this.dataService.updateDataFiles();
+        this.dataService.updateFilenames();
       },
       (e) => {
         console.error(e);

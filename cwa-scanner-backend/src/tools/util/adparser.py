@@ -197,7 +197,10 @@ def readData(path, files):
             f = open(p, "r")
             s = f.read()
             f.close()
-            data.append(json.loads(s))
+            data.append({
+                "filename": filename,
+                "data": json.loads(s)
+            })
         return data
     except Exception as e:
         print(e)
@@ -206,48 +209,63 @@ def readData(path, files):
 def packets_per_minute(path, files, options=None):
     interval = options["interval"] if options is not None else 60
     data = readData(path, files)
-    ppm = {}
+    ppm = []
     for ps in data:
-        for p in ps:
+        fileData = {}
+        for p in ps["data"]:
             t = int(p["time"] - p["time"]%interval)
-            if t not in ppm:
-                ppm[t] = {
+            if t not in fileData:
+                fileData[t] = {
                     "total": 0,
                     "cwa": 0,
                     "non_cwa": 0
                 }
-            ppm[t]["total"] += 1
+            fileData[t]["total"] += 1
             if CWA_SVC_STR in p["payload"]:
-                ppm[t]["cwa"] += 1
+                fileData[t]["cwa"] += 1
             else:
-                ppm[t]["non_cwa"] += 1
+                fileData[t]["non_cwa"] += 1
+        ppm.append({
+            "filename": ps["filename"],
+            "data": fileData
+        })
     return ppm
 
 def devices_per_minute(path, files, options=None):
     interval = options["interval"] if options is not None else 60
     data = readData(path, files)
-    dpm = {}
-    dpm2 = {}
+    dpm = []
     for ps in data:
-        for p in ps:
+        dpm1 = {}
+        dpm2 = {}
+        for p in ps["data"]:
             t = int(p["time"] - p["time"]%interval)
-            if t not in dpm:
-                dpm[t] = 1
+            if t not in dpm1:
+                dpm1[t] = 1
                 dpm2[t] = [p["addr"]]
             if p["addr"] not in dpm2[t]:
                 dpm2[t].append(p["addr"])
-                dpm[t] += 1
+                dpm1[t] += 1
+        dpm.append({
+            "filename": ps["filename"],
+            "data": dpm1
+        })
     return dpm
 
 def rssi_distribution(path, files, options=None):
     data = readData(path, files)
-    rssi_dist = {}
+    rssi_dist = []
     for ps in data:
-        for p in ps:
+        fileData = {}
+        for p in ps["data"]:
             t = int(p["rssi"] - p["rssi"]%10)
-            if str(t) not in rssi_dist:
-                rssi_dist[str(t)] = 0
-            rssi_dist[str(t)] += 1
+            if str(t) not in fileData:
+                fileData[str(t)] = 0
+            fileData[str(t)] += 1
+        rssi_dist.append({
+            "filename": ps["filename"],
+            "data": fileData
+        })
     return rssi_dist
 
 def aggregate(aggregation_type, path, files, options=None):
