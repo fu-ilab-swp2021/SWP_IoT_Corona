@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.transform
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.*
 import javax.inject.Inject
 import kotlin.contracts.contract
@@ -91,7 +92,7 @@ class ScannerRepository @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             val latitude = location.latitude.toByteArray()
             val longitude = location.longitude.toByteArray()
-            Log.d("scanner repo","Bytes for lat: ${(latitude as ByteArray).size}, lon: ${location?.latitude}")
+            Log.d("scanner repo","lat: ${location?.latitude}, lon: ${location?.longitude}")
             withContext(Dispatchers.Main) {
                 writePosition(scanResult.device, GATT_LATITUDE_UUID!!, latitude)
                 delay(1000)
@@ -128,7 +129,10 @@ class ScannerRepository @Inject constructor(
     }
 
     private fun Double.toByteArray(): ByteArray {
-        return ByteBuffer.wrap(ByteArray(8)).putDouble(this).array()
+        return ByteBuffer.wrap(ByteArray(8))
+            .apply { this.order(ByteOrder.LITTLE_ENDIAN) }.putDouble(this).array().apply {
+                Log.i("scanner repo","endian: ${Arrays.toString(this)}")
+            }
     }
 
     private fun uuidFromShortCode16(shortCode16: String): UUID? {
