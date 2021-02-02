@@ -25,14 +25,14 @@
 #define GATT_LONGITUDE_UUID		0x2AAF
 
 #define DEV_MANU			"SWP Internet-Technologien 20/21"
-#define DEV_MODEL			"Corona Scanner"
-#define DEV_NAME			"Corona Scanner"
+#define DEV_MODEL			"CWA Scanner"
+#define DEV_NAME			"CWA Scanner"
 
 int init_service(void);
 
 struct position {
-  int latitude;
-  int longitude;
+  double latitude;
+  double longitude;
 };
 
 #endif 

@@ -82,6 +82,7 @@ static int gap_event_cb(struct ble_gap_event *event, void *arg)
     case BLE_GAP_EVENT_DISCONNECT:
       puts("GAP Disconnected\n");
       break;
+      start_advertise();
   }
   return 0;
 }
@@ -119,20 +120,20 @@ static int position_uuid_callback (
   (void) attr_handle;
   (void) arg;
 
-  int * pos;
+  double * pos;
   uint16_t om_len;
 
   // Check if UUID fits to Lat or Lon
   if (ble_uuid_cmp(
 	ctxt->chr->uuid,
 	BLE_UUID16_DECLARE(GATT_LATITUDE_UUID)
-	)){
+	)==0){
     pos = &GPS_POS.latitude;
   }
   else if (ble_uuid_cmp(
 	ctxt->chr->uuid,
 	BLE_UUID16_DECLARE(GATT_LONGITUDE_UUID)
-	)){
+	)==0){
     pos = &GPS_POS.longitude;
   } else {
   	return 1;
@@ -142,13 +143,10 @@ static int position_uuid_callback (
   ble_hs_mbuf_to_flat(ctxt->om, pos,sizeof(*pos), &om_len);
   
   printf(
-      "\nLatitude\t%d\nLongitude\t%d\n",
+      "\nLatitude\t%g\nLongitude\t%g\n",
       GPS_POS.latitude,
       GPS_POS.longitude
       );
-  if (!(GPS_POS.latitude && GPS_POS.longitude)) {
-    start_advertise();
-  }
   return 0;
 }
 
