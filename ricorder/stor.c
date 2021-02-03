@@ -131,10 +131,12 @@ void stor_flush(void)
     size_t len;
     char file[FILENAME_MAXLEN];
 
-    // double lat = 52.123;
-    // double lon = 4.123;
-    // snprintf(file, sizeof(file), "/f/%dx%d", (int)lat, (int)lon);
-    snprintf(file, sizeof(file), "/f/%s", "050221" );
+    /* get filename from basetime (drop everything below hours) */
+    uint32_t ts;
+    wallclock_now(&ts, NULL);
+    printf("\n time ts: %lu", ts);
+    uint32_t base = (ts - (ts % 60)) / 1000;
+    snprintf(file, sizeof(file), "/f/%u", (unsigned)base);
 
     /* copy buffer and clear inbuf */
     mutex_lock(&_buflock);
