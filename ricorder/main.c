@@ -40,6 +40,7 @@ volatile Modi old_state = STATE_MENU;
 volatile Modi current_state = STATE_MENU;
 volatile Modi new_state = STATE_MENU;
 
+
 static volatile int STATE_SWITCHED = 0;
 
 #define ENABLE_DEBUG 1
@@ -132,8 +133,6 @@ int main(void)
 
     printf("\n\nAfter UI init\n");
 
-    xtimer_sleep(5);
-
     /* initialize the wallclock (RTC) */
     res = wallclock_init();
     if (res != 0) {
@@ -172,8 +171,8 @@ int main(void)
 
 
     // Dummy longitudes and latitudes (Berlin coordinates)
-    static float lon = 52.520008;
-    static float lat = 13.404954;
+    // static float lon = 52.520008;
+    // static float lat = 13.404954;
 
 #if defined(MODULE_PERIPH_GPIO_IRQ) && defined(BTN0_PIN) && defined(BTN1_PIN) && defined(BTN2_PIN) && defined(BTN3_PIN)
     gpio_init_int(BTN0_PIN, BTN0_MODE, GPIO_BOTH, set_gps_mode, NULL);
@@ -213,7 +212,7 @@ int main(void)
                 STATE_SWITCHED = 0;
             }
 
-            scanner_mode(&lat, &lon, last_wakeup);
+            scanner_mode(last_wakeup);
             break;
 
         case STATE_MENU:
@@ -233,9 +232,11 @@ int main(void)
             xtimer_sleep(1);
         }
 
-        printf("\nBTN0: %d", gpio_read(BTN0_PIN));
-        printf("\nBTN1: %d", gpio_read(BTN1_PIN));
-        printf("\nBTN3: %d", gpio_read(BTN3_PIN));
+        // xtimer_sleep(5);
+
+        // printf("\nBTN0: %d", gpio_read(BTN0_PIN));
+        // printf("\nBTN1: %d", gpio_read(BTN1_PIN));
+        // printf("\nBTN3: %d", gpio_read(BTN3_PIN));
 
     }
 
