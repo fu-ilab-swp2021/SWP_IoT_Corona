@@ -87,21 +87,12 @@ void save_gps_location(char *file_name, double latitude, double longitude) {
         return;
     }
 
-    // int MAX_LEN = 100;
-    // char *file_name = "/f/ABC";
-    // printf("String: %s, Length: %d", file_name, (int)strlen(file_name));
     char gps_log_line_temp[100];
-    sprintf(gps_log_line_temp, "\n%s,%07.3f,%07.3f", file_name, latitude, longitude);
+    sprintf(gps_log_line_temp, "\n%s,%.3f,%.3f", file_name, latitude, longitude);
     int len = strlen(gps_log_line_temp);
     char gps_log_line[len];
     sprintf(gps_log_line, "%s", gps_log_line_temp);
-    printf("\ngps_log_line: %s", gps_log_line);
-
-    // printf("\nSize file name: %d", (int)sizeof(file_name));
-    // size_t len = sizeof(file_name) + 30;
-    // char gps_string[len];
-    // snprintf(gps_string, len,"\n%s,%07.3f,%07.3f", file_name, LAT, LON);
-   
+    printf("\ngps_log_line: %s", gps_log_line);  
 
     int n = vfs_write(g, gps_log_line, len);
     if (n < 0) {
@@ -140,13 +131,9 @@ void stor_flush(void)
     size_t len;
     char file[FILENAME_MAXLEN];
 
-    /* get filename from basetime (drop everything below hours) */
-    // uint32_t ts;
-    // wallclock_now(&ts, NULL);
-    // printf("\n time ts: %lu", ts);
-    // uint32_t base = (ts - (ts % 60)) / 1000;
-    // snprintf(file, sizeof(file), "/f/%u", (unsigned)base);
-    snprintf(file, sizeof(file), "/f/%s", "02345678");
+    double lat = 52.123;
+    double lon = 4.123;
+    snprintf(file, sizeof(file), "/f/%dx%d", (int)lat, (int)lon);
 
     /* copy buffer and clear inbuf */
     mutex_lock(&_buflock);
@@ -160,21 +147,20 @@ void stor_flush(void)
     }
 
     /* write data to FS */
-    // int f = vfs_open(file, (O_CREAT | O_WRONLY | O_APPEND), 0);
     int f = vfs_open(file, (O_WRONLY | O_CREAT | O_EXCL), 0);
     printf("\nstor.c|stor_flush|f 1  = %d", f);
     if (f < 0) {
-        int f = vfs_open(file, (O_WRONLY | O_APPEND), 0);
-        printf("\nAppending to existing file");
+        f = vfs_open(file, (O_WRONLY | O_APPEND), 0);
+        // printf("\nAppending to existing file");
         printf("\nstor.c|stor_flush|f 2  = %d", f);
 
         if (f < 0) {
-            printf("\nstor.c|stor_flush|unable to open file");
+            // printf("\nstor.c|stor_flush|unable to open file");
             DEBUG("[stor] _flush: unable to open file '%s'\n", file);
             return;
         } 
     } else {
-        printf("\nNew GPS log line written.");
+        // printf("\nNew GPS log line written.");
         save_gps_location(file, LAT, LON);
     }
 
@@ -186,8 +172,9 @@ void stor_flush(void)
     else if ((size_t)n != len) {
         printf("\nstor.c|stor_flush|size written is not the given");
         DEBUG("[stor] _flush: size written is not the given\n");
+    } else {
+        // printf("\nstor.c|stor_flush|Everything seems to work");
     }
-    printf("\nstor.c|stor_flush|Everything seems to work");
     vfs_close(f);
 }
 
