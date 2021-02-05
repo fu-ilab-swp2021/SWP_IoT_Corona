@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { LineChartComponent } from '@swimlane/ngx-charts';
+import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import { AggregationPacket, PpmPacket } from '../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../services/data.service';
@@ -42,7 +43,7 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
   activeEntries: any[] = [];
   colorScheme = 'cool';
   @ViewChild('ngx_chart') chart: LineChartComponent;
-  data: AggregationPacket<PpmPacket>[];
+  data: AggregationPacket<PpmPacket>[] = [];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
@@ -94,17 +95,22 @@ export class PpmLinechartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.dataService.updateFilenames();
-    this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
+    this.dataSubscription = this.dataService.dataChanged.subscribe(() => this.updateData());
+    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
+      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
+      this.chartDataFromData();
+    });
+    this.updateData();
+  }
+
+  updateData() {
+    if (!_.isEmpty(_.xor(this.data.map(d => d.filename), this.dataService.filenames))) {
       this.dataService
         .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
         .subscribe((data: AggregationPacket<PpmPacket>[]) => {
           this.newDataFromService(data);
         });
-    });
-    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
-      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
-      this.chartDataFromData();
-    });
+    }
   }
 
   ngOnDestroy() {

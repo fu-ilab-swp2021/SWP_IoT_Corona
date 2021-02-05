@@ -10,6 +10,7 @@ import { BarVerticalComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
 import { AggregationPacket, RssiDistPacket } from '../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../services/data.service';
+import * as _ from 'lodash';
 interface ChartSeries {
   name: any;
   value: any;
@@ -38,7 +39,7 @@ export class RssiDistributionComponent
   activeEntries: any[] = [];
   colorScheme = 'cool';
   @ViewChild('ngx_chart') chart: BarVerticalComponent;
-  data: AggregationPacket<RssiDistPacket>[];
+  data: AggregationPacket<RssiDistPacket>[] = [];
   chartData: ChartSeries[] = [];
   chartDataCopy: ChartSeries[] = [];
   hideSeries: any[] = [];
@@ -75,7 +76,19 @@ export class RssiDistributionComponent
 
   ngOnInit(): void {
     this.dataService.updateFilenames();
-    this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
+    this.dataSubscription = this.dataService.dataChanged.subscribe(() => this.updateData());
+    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
+      const changedFile = this.data.find(df => df.filename === f.filename);
+      if (changedFile) {
+        changedFile.visisble = f.visisble;
+      }
+      this.chartDataFromData();
+    });
+    this.updateData();
+  }
+
+  updateData() {
+    if (!_.isEmpty(_.xor(this.data.map(d => d.filename), this.dataService.filenames))) {
       this.dataService
         .getAggregatedData(this.aggregationType, {
           interval: this.sliderFC.value,
@@ -83,11 +96,7 @@ export class RssiDistributionComponent
         .subscribe((data: AggregationPacket<RssiDistPacket>[]) => {
           this.newDataFromService(data);
         });
-    });
-    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
-      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
-      this.chartDataFromData();
-    });
+    }
   }
 
   ngOnDestroy() {
