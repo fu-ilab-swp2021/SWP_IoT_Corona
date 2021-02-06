@@ -7,8 +7,8 @@ import {
 } from '@angular/core';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { Subscription } from 'rxjs';
-import { BlePacket } from '../models/cwa-packet.model';
-import { DataService, UploadedDataItem } from '../services/data.service';
+import { BlePacket } from '../../models/cwa-packet.model';
+import { DataService, UploadedDataItem } from '../../services/data.service';
 
 interface ChartSeries {
   show: boolean;

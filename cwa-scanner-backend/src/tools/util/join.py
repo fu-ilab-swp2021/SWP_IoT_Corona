@@ -22,7 +22,7 @@
 
 import argparse
 
-from util.adparser import ADParser
+from ..adparser import ADParser
 
 
 def main(args):

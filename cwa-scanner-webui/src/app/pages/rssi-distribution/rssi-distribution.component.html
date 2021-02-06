@@ -1,0 +1,42 @@
+<app-chart
+  [chartTemplate]="temp"
+  [showIntervalSlider]="showIntervalSlider"
+  [createChartSeries]="createChartSeries"
+  [flattenData]="flattenData"
+  [xAxisLabel]="xAxisLabel"
+  [yAxisLabel]="yAxisLabel"
+  [aggregationType]="aggregationType"
+  [legend]="legend"
+></app-chart>
+<ng-template
+  #temp
+  let-colorScheme="colorScheme"
+  let-legend="legend"
+  let-autoScale="autoScale"
+  let-showXAxisLabel="showXAxisLabel"
+  let-showYAxisLabel="showYAxisLabel"
+  let-xAxis="xAxis"
+  let-formatXAxisLabel="formatXAxisLabel"
+  let-yAxis="yAxis"
+  let-xAxisLabel="xAxisLabel"
+  let-yAxisLabel="yAxisLabel"
+  let-chartData="chartData"
+  let-timeline="timeline"
+>
+  <ngx-charts-bar-vertical
+    #ngx_chart
+    [scheme]="colorScheme"
+    [legend]="legend"
+    legendPosition="'below'"
+    [autoScale]="autoScale"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxis]="xAxis"
+    [yAxis]="yAxis"
+    [xAxisLabel]="xAxisLabel"
+    [yAxisLabel]="yAxisLabel"
+    [timeline]="timeline"
+    [results]="chartData"
+  >
+  </ngx-charts-bar-vertical>
+</ng-template>

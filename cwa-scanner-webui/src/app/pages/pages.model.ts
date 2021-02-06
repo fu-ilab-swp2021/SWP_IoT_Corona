@@ -1,8 +1,9 @@
-import { DpmLinechartComponent } from '../dpm-linechart/dpm-linechart.component';
-import { RssiDistributionComponent } from '../rssi-distribution/rssi-distribution.component';
-import { RssiLinechartMapComponent } from '../rssi-linechart-map/rssi-linechart-map.component';
+import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
+import { RssiLinechartMapComponent } from './rssi-linechart-map/rssi-linechart-map.component';
+import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { RssiStackedLinechartComponent } from './rssi-stacked-linechart/rssi-stacked-linechart.component';
+import { AvgRssiLinechartComponent } from './avg-rssi-linechart/avg-rssi-linechart.component';
 
 export const PAGES = [
   {
@@ -39,5 +40,12 @@ export const PAGES = [
     title: '#RSSI ranges per interval',
     previewPath: 'assets/img/rssi_stacked_linechart_preview.png',
     component: RssiStackedLinechartComponent
+  },
+  {
+    path: 'avg-rssi-linechart',
+    icon: 'show_chart',
+    title: 'Average RSSI value per interval',
+    previewPath: 'assets/img/avg_rssi_linechart_preview.png',
+    component: AvgRssiLinechartComponent
   },
 ];

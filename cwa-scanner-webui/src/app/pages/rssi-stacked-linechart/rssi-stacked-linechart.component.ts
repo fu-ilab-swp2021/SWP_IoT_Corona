@@ -62,6 +62,7 @@ export class RssiStackedLinechartComponent
         }
       });
     });
+    chartData.sort((a, b) => Number(a.name) - Number(b.name));
     return chartData;
   }
 }

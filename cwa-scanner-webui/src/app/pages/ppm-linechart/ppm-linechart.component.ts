@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { AggregationPacket, PpmPacket, RssiStackedPacket } from 'src/app/models/cwa-packet.model';
+import { AggregationPacket, PpmPacket } from 'src/app/models/cwa-packet.model';
 import { AGGREGATION_TYPES } from '../../services/data.service';
 
 @Component({
@@ -37,7 +37,7 @@ export class PpmLinechartComponent
     }, {});
   }
 
-  createChartSeries(flatData: RssiStackedPacket) {
+  createChartSeries(flatData: PpmPacket) {
     const chartData = [
       {
         name: 'Total packets per interval',

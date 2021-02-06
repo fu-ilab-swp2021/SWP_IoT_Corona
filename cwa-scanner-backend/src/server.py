@@ -4,8 +4,8 @@ from os.path import isfile, join
 from flask import Flask, jsonify, request, Response
 from flask_swagger import swagger
 from flask_cors import CORS
-from .tools.util.adparser import ADParser
-from .tools.util.data_handling import aggregate
+from .tools.adparser import ADParser
+from .tools.data_handling import aggregate
 import numpy as np
 import json
 

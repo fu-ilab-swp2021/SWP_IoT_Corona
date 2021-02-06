@@ -26,9 +26,8 @@ import argparse
 from dateutil import tz
 from datetime import datetime
 
-from util.adparser import ADParser
-from util.plotter import Plotter
-
+from ..adparser import ADParser
+from .plotter import Plotter
 
 
 CWA_SVC_STR =  "03036FFD"

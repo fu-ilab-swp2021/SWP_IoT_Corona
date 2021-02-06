@@ -16,7 +16,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
-import { RssiLinechartMapComponent } from './rssi-linechart-map/rssi-linechart-map.component';
+import { RssiLinechartMapComponent } from './pages/rssi-linechart-map/rssi-linechart-map.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -24,12 +24,13 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileUploadDialogComponent } from './file-upload/file-upload-dialog.component';
 import { HomeComponent } from './home/home.component';
-import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
-import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
+import { RssiDistributionComponent } from './pages/rssi-distribution/rssi-distribution.component';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ChartComponent } from './chart/chart.component';
 import { RssiStackedLinechartComponent } from './pages/rssi-stacked-linechart/rssi-stacked-linechart.component';
 import { PpmLinechartComponent } from './pages/ppm-linechart/ppm-linechart.component';
+import { DpmLinechartComponent } from './pages/dpm-linechart/dpm-linechart.component';
+import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-linechart.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { PpmLinechartComponent } from './pages/ppm-linechart/ppm-linechart.compo
     RssiDistributionComponent,
     DpmLinechartComponent,
     ChartComponent,
-    RssiStackedLinechartComponent
+    RssiStackedLinechartComponent,
+    AvgRssiLinechartComponent
   ],
   imports: [
     BrowserModule,

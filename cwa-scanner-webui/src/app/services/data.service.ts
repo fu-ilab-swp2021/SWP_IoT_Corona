@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
@@ -9,6 +10,7 @@ export enum AGGREGATION_TYPES {
   rssi_dist = 'rssi_distribution',
   dpm = 'devices_per_minute',
   rssi_stacked = 'rssi_stacked_per_minute',
+  avg_rssi = 'avg_rssi_per_minute',
 }
 export interface UploadedDataItem {
   data: BlePacket[];
@@ -25,12 +27,18 @@ export class DataService {
   newDataArrived = new Subject();
   dataChanged = new Subject();
   visibilityChanged = new Subject<DataFileInfo>();
+  onlyCwaFC = new FormControl(false);
+  optionChanged = new Subject();
 
   get filenames() {
     return this.dataFilesInfo.map((f) => f.filename);
   }
 
-  constructor(private httpService: HttpService) {}
+  constructor(private httpService: HttpService) {
+    this.onlyCwaFC.valueChanges.subscribe(() => {
+      this.optionChanged.next();
+    });
+  }
 
   getDataFiles(): Observable<UploadedDataItem[]> {
     return this.httpService.getDataFiles().pipe(
@@ -65,7 +73,7 @@ export class DataService {
     return this.httpService.getFilenames();
   }
 
-  deleteDataFile(name) {
+  deleteDataFile(name: string) {
     return this.httpService.deleteDatafile(name).pipe(
       tap(
         () => {
@@ -81,11 +89,14 @@ export class DataService {
     );
   }
 
-  getAggregatedData(aggregationType, options?): Observable<AggregationPacket<any>[]> {
+  getAggregatedData(aggregationType: AGGREGATION_TYPES, options?: any): Observable<AggregationPacket<any>[]> {
     return this.httpService.getAggregatedData(
       aggregationType,
       this.filenames,
-      options
+      {
+        ...options,
+        only_cwa: this.onlyCwaFC.value
+      }
     );
   }
 }

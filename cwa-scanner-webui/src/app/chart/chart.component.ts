@@ -4,11 +4,9 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  TemplateRef,
-  ViewChild,
+  TemplateRef
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { LineChartComponent } from '@swimlane/ngx-charts';
 import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import { AggregationPacket } from '../models/cwa-packet.model';
@@ -31,7 +29,7 @@ const STANDARD_INTERVAL = 60;
   styleUrls: ['./chart.component.scss']
 })
 export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
-  @Input() aggregationType;
+  @Input() aggregationType: AGGREGATION_TYPES;
   @Input() chartTemplate: TemplateRef<any>;
   @Input() showIntervalSlider = true;
   @Input() createChartSeries: (flatData: T[]) => ChartSeries[];
@@ -48,12 +46,10 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   @Input() timeline = true;
   @Input() autoScale = true;
   @Input() colorScheme = 'cool';
-  @ViewChild('ngx_chart') chart: LineChartComponent;
   sliderFC = new FormControl(STANDARD_INTERVAL);
   data: AggregationPacket<T>[] = [];
   chartData: ChartSeries[] = [];
-  dataSubscription: Subscription;
-  visibleSupscription: Subscription;
+  subscriptions: Subscription[] = [];
   context = {
     colorScheme: this.colorScheme,
     legend: this.legend,
@@ -76,16 +72,20 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.dataService.updateFilenames();
-    this.dataSubscription = this.dataService.dataChanged.subscribe(() => this.updateData());
-    this.visibleSupscription = this.dataService.visibilityChanged.subscribe(f => {
+    this.subscriptions.push(this.dataService.dataChanged.subscribe(() => this.updateData()));
+    this.subscriptions.push(this.dataService.visibilityChanged.subscribe(f => {
       this.data.find(df => df.filename === f.filename).visisble = f.visisble;
       this.chartDataFromData();
-    });
+    }));
+    this.subscriptions.push(this.dataService.optionChanged.subscribe(() => {
+      this.updateData(true);
+    }));
     this.updateData();
+    this.updateContext();
   }
 
-  updateData() {
-    if (!_.isEmpty(_.xor(this.data.map(d => d.filename), this.dataService.filenames))) {
+  updateData(optionChanged?: boolean) {
+    if (!_.isEmpty(_.xor(this.data.map(d => d.filename), this.dataService.filenames)) || optionChanged) {
       this.dataService
         .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
         .subscribe((data: AggregationPacket<T>[]) => {
@@ -94,9 +94,25 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  updateContext() {
+    this.context = {
+      colorScheme: this.colorScheme,
+      legend: this.legend,
+      autoScale: this.autoScale,
+      showXAxisLabel: this.showXAxisLabel,
+      showYAxisLabel: this.showXAxisLabel,
+      xAxis: this.xAxis,
+      formatXAxisLabel: this.formatXAxisLabel,
+      yAxis: this.yAxis,
+      xAxisLabel: this.xAxisLabel,
+      yAxisLabel: this.yAxisLabel,
+      chartData: this.chartData,
+      timeline: this.timeline
+    };
+  }
+
   ngOnDestroy() {
-    this.dataSubscription?.unsubscribe();
-    this.visibleSupscription?.unsubscribe();
+    this.subscriptions.forEach(s => s.unsubscribe());
   }
 
   ngAfterViewInit() {}

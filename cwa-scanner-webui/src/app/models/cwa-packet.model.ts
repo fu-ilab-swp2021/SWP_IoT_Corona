@@ -35,6 +35,13 @@ export interface RssiStackedPacket {
     [rssiRange: string]: number;
   };
 }
+export interface AvgRssiPacket {
+  [time: string]: {
+    sum: number;
+    count: number;
+    avg: number;
+  };
+}
 
 export interface DataFileInfo {
   filename: string;

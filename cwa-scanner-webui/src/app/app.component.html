@@ -21,6 +21,7 @@
     </button>
     <!-- <span routerLink="" style="cursor: pointer;">CWA Scanner Web UI</span> -->
     <div class="flex-spacer"></div>
+    <mat-slide-toggle [formControl]="dataService.onlyCwaFC" class="only-cwa-toggle">Only CWA</mat-slide-toggle>
     <button mat-raised-button #menuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="menu" style="margin-right: 10px">
       Uploaded data
       <mat-icon>list</mat-icon>

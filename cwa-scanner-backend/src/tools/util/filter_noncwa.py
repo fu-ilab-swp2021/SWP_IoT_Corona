@@ -22,12 +22,12 @@
 
 import argparse
 
-from util.adparser import ADParser
+from ..adparser import ADParser
 
 
 def main(args):
     res = ADParser(args.logfiles)
-    res.compress()
+    res.filter_noncwa()
 
 
 if __name__ == "__main__":

@@ -50,6 +50,32 @@ def rssi_stacked_per_minute(path, files, options=None):
         })
     return ppm
 
+def avg_rssi_per_minute(path, files, options=None):
+    interval = options["interval"] if options is not None else STANDARD_INTERVAL
+    data = readData(path, files)
+    ppm = []
+    for ps in data:
+        fileData = {}
+        for p in ps["data"]:
+            if onlyCWA(options) and not isCWA(p):
+                continue
+            t = str(int(p["time"] - p["time"]%interval))
+            if t not in fileData:
+                fileData[t] = {
+                    "sum": 0,
+                    "count": 0,
+                    "avg": 0
+                }
+            fileData[t]["sum"] += p["rssi"]
+            fileData[t]["count"] += 1
+        for t in fileData:
+            fileData[t]["avg"] = fileData[t]["sum"] / fileData[t]["count"]
+        ppm.append({
+            "filename": ps["filename"],
+            "data": fileData
+        })
+    return ppm
+
 def packets_per_minute(path, files, options=None):
     interval = options["interval"] if options is not None else STANDARD_INTERVAL
     data = readData(path, files)
@@ -129,4 +155,6 @@ def aggregate(aggregation_type, path, files, options=None):
         f = devices_per_minute
     elif aggregation_type == "rssi_stacked_per_minute":
         f = rssi_stacked_per_minute
+    elif aggregation_type == "avg_rssi_per_minute":
+        f = avg_rssi_per_minute
     return f(path, files, options) if f is not None else []
