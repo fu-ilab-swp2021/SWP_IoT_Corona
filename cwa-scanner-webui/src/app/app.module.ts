@@ -1,6 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -15,7 +14,6 @@ import { FileUploadComponent } from './file-upload/file-upload.component';
 import { NgxMatFileInputModule } from '@angular-material-components/file-input';
 import { HttpClientModule } from '@angular/common/http';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { RssiLinechartMapComponent } from './rssi-linechart-map/rssi-linechart-map.component';
@@ -29,6 +27,9 @@ import { HomeComponent } from './home/home.component';
 import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
 import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { ChartComponent } from './chart/chart.component';
+import { RssiStackedLinechartComponent } from './pages/rssi-stacked-linechart/rssi-stacked-linechart.component';
+import { PpmLinechartComponent } from './pages/ppm-linechart/ppm-linechart.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,8 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     HomeComponent,
     RssiDistributionComponent,
     DpmLinechartComponent,
+    ChartComponent,
+    RssiStackedLinechartComponent
   ],
   imports: [
     BrowserModule,

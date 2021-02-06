@@ -21,14 +21,8 @@
 # author: Hauke Petersen <hauke.petersen@fu-berlin.de>
 
 
-import os
-from os import listdir
-from os.path import isfile, join
 import re
-import sys
-import argparse
 from enum import Enum
-import json
 
 CWA_SVC_STR =  "03036FFD"
 
@@ -189,91 +183,5 @@ class ADParser():
                 print("  itvl: {:.2f}s / {:.2f}s / {:.2f}s".format(
                         min(itvl), max(itvl), (sum(itvl) / len(itvl))))
 
-def readData(path, files):
-    data = []
-    try:
-        for filename in files:
-            p = join(path, filename+".json")
-            f = open(p, "r")
-            s = f.read()
-            f.close()
-            data.append({
-                "filename": filename,
-                "data": json.loads(s)
-            })
-        return data
-    except Exception as e:
-        print(e)
-        return []
-
-def packets_per_minute(path, files, options=None):
-    interval = options["interval"] if options is not None else 60
-    data = readData(path, files)
-    ppm = []
-    for ps in data:
-        fileData = {}
-        for p in ps["data"]:
-            t = int(p["time"] - p["time"]%interval)
-            if t not in fileData:
-                fileData[t] = {
-                    "total": 0,
-                    "cwa": 0,
-                    "non_cwa": 0
-                }
-            fileData[t]["total"] += 1
-            if CWA_SVC_STR in p["payload"]:
-                fileData[t]["cwa"] += 1
-            else:
-                fileData[t]["non_cwa"] += 1
-        ppm.append({
-            "filename": ps["filename"],
-            "data": fileData
-        })
-    return ppm
-
-def devices_per_minute(path, files, options=None):
-    interval = options["interval"] if options is not None else 60
-    data = readData(path, files)
-    dpm = []
-    for ps in data:
-        dpm1 = {}
-        dpm2 = {}
-        for p in ps["data"]:
-            t = int(p["time"] - p["time"]%interval)
-            if t not in dpm1:
-                dpm1[t] = 1
-                dpm2[t] = [p["addr"]]
-            if p["addr"] not in dpm2[t]:
-                dpm2[t].append(p["addr"])
-                dpm1[t] += 1
-        dpm.append({
-            "filename": ps["filename"],
-            "data": dpm1
-        })
-    return dpm
-
-def rssi_distribution(path, files, options=None):
-    data = readData(path, files)
-    rssi_dist = []
-    for ps in data:
-        fileData = {}
-        for p in ps["data"]:
-            t = int(p["rssi"] - p["rssi"]%10)
-            if str(t) not in fileData:
-                fileData[str(t)] = 0
-            fileData[str(t)] += 1
-        rssi_dist.append({
-            "filename": ps["filename"],
-            "data": fileData
-        })
-    return rssi_dist
-
-def aggregate(aggregation_type, path, files, options=None):
-    f = None
-    if aggregation_type == "packets_per_minute":
-        f = packets_per_minute
-    elif aggregation_type == "rssi_distribution":
-        f = rssi_distribution
-    elif aggregation_type == "devices_per_minute":
-        f = devices_per_minute
-    return f(path, files, options) if f is not None else []
+def isCWA(packet):
+    return CWA_SVC_STR in packet['payload']

@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { PAGES } from '../app.component';
+import { Component, OnInit } from '@angular/core';
+import { PAGES } from '../pages/pages.model';
 
 @Component({
   selector: 'app-home',

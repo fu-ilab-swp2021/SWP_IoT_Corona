@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
 import { HttpService } from './http.service';
-import { flatMap, map, tap } from 'rxjs/operators';
-import { Observable, of, Subject } from 'rxjs';
-import { FormControl } from '@angular/forms';
 
 export enum AGGREGATION_TYPES {
   ppm = 'packets_per_minute',
   rssi_dist = 'rssi_distribution',
   dpm = 'devices_per_minute',
+  rssi_stacked = 'rssi_stacked_per_minute',
 }
 export interface UploadedDataItem {
   data: BlePacket[];

@@ -1,12 +1,11 @@
 import os
 from os import listdir
 from os.path import isfile, join
-from flask import Flask, jsonify, request, url_for, redirect, Response
-from flask.helpers import send_from_directory
+from flask import Flask, jsonify, request, Response
 from flask_swagger import swagger
 from flask_cors import CORS
-from .tools.util.adparser import ADParser, aggregate, readData
-from werkzeug.utils import secure_filename
+from .tools.util.adparser import ADParser
+from .tools.util.data_handling import aggregate
 import numpy as np
 import json
 

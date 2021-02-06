@@ -30,6 +30,12 @@ export interface RssiDistPacket {
   [rssiRange: string]: number;
 }
 
+export interface RssiStackedPacket {
+  [time: string]: {
+    [rssiRange: string]: number;
+  };
+}
+
 export interface DataFileInfo {
   filename: string;
   first: number;
