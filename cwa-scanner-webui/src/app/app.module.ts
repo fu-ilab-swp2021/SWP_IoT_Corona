@@ -31,6 +31,7 @@ import { RssiStackedLinechartComponent } from './pages/rssi-stacked-linechart/rs
 import { PpmLinechartComponent } from './pages/ppm-linechart/ppm-linechart.component';
 import { DpmLinechartComponent } from './pages/dpm-linechart/dpm-linechart.component';
 import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-linechart.component';
+import { GoogleMapsModule } from '@angular/google-maps';
 
 @NgModule({
   declarations: [
@@ -68,7 +69,8 @@ import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-l
     HttpClientModule,
     NgxChartsModule,
     MatTooltipModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    GoogleMapsModule
   ],
   providers: [],
   bootstrap: [AppComponent],
