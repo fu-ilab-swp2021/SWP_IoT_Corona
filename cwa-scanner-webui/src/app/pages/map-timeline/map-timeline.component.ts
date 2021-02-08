@@ -11,11 +11,11 @@ import { BlePacket } from '../../models/cwa-packet.model';
 import { DataService, UploadedDataItem } from '../../services/data.service';
 
 @Component({
-  selector: 'app-rssi-linechart-map',
-  templateUrl: './rssi-linechart-map.component.html',
-  styleUrls: ['./rssi-linechart-map.component.scss'],
+  selector: 'app-map-timeline',
+  templateUrl: './map-timeline.component.html',
+  styleUrls: ['./map-timeline.component.scss'],
 })
-export class RssiLinechartMapComponent
+export class MapTimelineComponent
   implements OnInit, AfterViewInit, OnDestroy {
 
   options: google.maps.MapOptions = {

@@ -1,5 +1,5 @@
 <app-chart
-  [chartTemplate]="temp"
+  [chartType]="chartType"
   [showIntervalSlider]="showIntervalSlider"
   [createChartSeries]="createChartSeries"
   [flattenData]="flattenData"
@@ -7,48 +7,3 @@
   [yAxisLabel]="yAxisLabel"
   [aggregationType]="aggregationType"
 ></app-chart>
-<ng-template
-  #temp
-  let-colorScheme="colorScheme"
-  let-legend="legend"
-  let-autoScale="autoScale"
-  let-showXAxisLabel="showXAxisLabel"
-  let-showYAxisLabel="showYAxisLabel"
-  let-xAxis="xAxis"
-  let-formatXAxisLabel="formatXAxisLabel"
-  let-yAxis="yAxis"
-  let-xAxisLabel="xAxisLabel"
-  let-yAxisLabel="yAxisLabel"
-  let-chartData="chartData"
-  let-timeline="timeline"
->
-  <ngx-charts-line-chart
-    #ngx_chart
-    [scheme]="colorScheme"
-    [legend]="legend"
-    legendPosition="'below'"
-    [autoScale]="autoScale"
-    [showXAxisLabel]="showXAxisLabel"
-    [showYAxisLabel]="showYAxisLabel"
-    [xAxis]="xAxis"
-    [xAxisTickFormatting]="formatXAxisLabel"
-    [yAxis]="yAxis"
-    [xAxisLabel]="xAxisLabel"
-    [yAxisLabel]="yAxisLabel"
-    [timeline]="timeline"
-    [results]="chartData"
-  >
-    <ng-template #seriesTooltipTemplate let-items="model">
-      <p>{{ items[0]?.name | date: "medium" }}</p>
-      <ul>
-        <li *ngFor="let item of items">
-          {{ item.series }}: {{ item.value | number }}
-        </li>
-      </ul>
-    </ng-template>
-    <ng-template #tooltipTemplate let-item="model">
-      <p>{{ item.name | date: "medium" }}</p>
-      <p>{{ item.series }}: {{ item.value | number }}</p>
-    </ng-template>
-  </ngx-charts-line-chart>
-</ng-template>

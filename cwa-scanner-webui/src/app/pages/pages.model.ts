@@ -1,5 +1,5 @@
 import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
-import { RssiLinechartMapComponent } from './rssi-linechart-map/rssi-linechart-map.component';
+import { MapTimelineComponent } from './map-timeline/map-timeline.component';
 import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { RssiStackedLinechartComponent } from './rssi-stacked-linechart/rssi-stacked-linechart.component';
@@ -14,11 +14,11 @@ export const PAGES = [
     component: PpmLinechartComponent
   },
   {
-    path: 'rssi-linechart-map',
+    path: 'map-timeline',
     icon: 'place',
-    title: 'RSSI over time & map',
+    title: 'Map & timeline',
     previewPath: 'assets/img/rssi_linechart_map_preview.png',
-    component: RssiLinechartMapComponent
+    component: MapTimelineComponent
   },
   {
     path: 'rssi-distribution',

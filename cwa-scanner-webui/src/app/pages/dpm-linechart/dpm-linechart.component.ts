@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChartType } from 'src/app/chart/chart.component';
 import { AggregationPacket, DpmPacket } from 'src/app/models/cwa-packet.model';
 import { AGGREGATION_TYPES } from '../../services/data.service';
 
@@ -13,6 +14,7 @@ export class DpmLinechartComponent
   xAxisLabel = 'Time';
   yAxisLabel = 'Device count';
   aggregationType = AGGREGATION_TYPES.dpm;
+  chartType = ChartType.linechart;
 
   ngOnInit() {}
 

@@ -1,6 +1,7 @@
 <div class="chart-wrapper">
-  <div class="chart-container">
-    <ng-container *ngTemplateOutlet="chartTemplate;context:context"></ng-container>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <div class="chart-container" *ngIf="!isLoading">
+    <ng-container *ngTemplateOutlet="chartTemplate"></ng-container>
   </div>
 </div>
 <div *ngIf="showIntervalSlider" class="slider-container">
@@ -23,3 +24,55 @@
     Confirm
   </button>
 </div>
+
+<ng-template #linechartTemplate>
+  <ngx-charts-line-chart
+    #ngx_chart
+    [scheme]="colorScheme"
+    [legend]="legend"
+    legendPosition="'below'"
+    [autoScale]="autoScale"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxis]="xAxis"
+    [xAxisTickFormatting]="formatXAxisLabel"
+    [yAxis]="yAxis"
+    [xAxisLabel]="xAxisLabel"
+    [yAxisLabel]="yAxisLabel"
+    [timeline]="timeline"
+    [results]="chartData"
+  >
+    <ng-template #seriesTooltipTemplate let-items="model">
+      <span>{{ items[0]?.name | date: "MMM d, y, HH:mm:ss" }}</span>
+      <div class="tooltip-list-item" *ngFor="let item of items">
+        <div class="tooltip-color" [style.backgroundColor]="item.color"></div>
+        <span class="tooltip-series">{{ item.series }}:</span>
+        <div class="tooltip-spacer"></div>
+        <span class="tooltip-value">{{ item.value | number }}</span>
+      </div>
+    </ng-template>
+    <ng-template #tooltipTemplate let-item="model">
+      <p>{{ item.name | date: "medium" }}</p>
+      <p>{{ item.series }}: {{ item.value | number }}</p>
+    </ng-template>
+  </ngx-charts-line-chart>
+</ng-template>
+
+<ng-template #barchartTemplate>
+  <ngx-charts-bar-vertical
+    #ngx_chart
+    [scheme]="colorScheme"
+    [legend]="legend"
+    legendPosition="'below'"
+    [autoScale]="autoScale"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxis]="xAxis"
+    [yAxis]="yAxis"
+    [xAxisLabel]="xAxisLabel"
+    [yAxisLabel]="yAxisLabel"
+    [timeline]="timeline"
+    [results]="chartData"
+  >
+  </ngx-charts-bar-vertical>
+</ng-template>

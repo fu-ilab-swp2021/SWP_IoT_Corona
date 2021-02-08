@@ -1,10 +1,12 @@
+import { ViewChild } from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';
 import {
   AfterViewInit,
   Component,
   Input,
   OnDestroy,
   OnInit,
-  TemplateRef
+  TemplateRef,
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as _ from 'lodash';
@@ -21,16 +23,20 @@ interface ChartSeries {
   }[];
 }
 
+export enum ChartType {
+  linechart = 'linechart',
+  barchart = 'barchart',
+}
+
 const STANDARD_INTERVAL = 60;
 
 @Component({
   selector: 'app-chart',
   templateUrl: './chart.component.html',
-  styleUrls: ['./chart.component.scss']
+  styleUrls: ['./chart.component.scss'],
 })
 export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   @Input() aggregationType: AGGREGATION_TYPES;
-  @Input() chartTemplate: TemplateRef<any>;
   @Input() showIntervalSlider = true;
   @Input() createChartSeries: (flatData: T[]) => ChartSeries[];
   @Input() flattenData: (data: AggregationPacket<T>[]) => T[];
@@ -46,10 +52,14 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   @Input() timeline = true;
   @Input() autoScale = true;
   @Input() colorScheme = 'cool';
+  @Input() chartType: ChartType = ChartType.linechart;
+  @ViewChild('linechartTemplate') linechartTemplate: TemplateRef<any>;
+  @ViewChild('barchartTemplate') barchartTemplate: TemplateRef<any>;
   sliderFC = new FormControl(STANDARD_INTERVAL);
   data: AggregationPacket<T>[] = [];
   chartData: ChartSeries[] = [];
   subscriptions: Subscription[] = [];
+  isLoading = false;
   context = {
     colorScheme: this.colorScheme,
     legend: this.legend,
@@ -62,35 +72,75 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
     xAxisLabel: this.xAxisLabel,
     yAxisLabel: this.yAxisLabel,
     chartData: this.chartData,
-    timeline: this.timeline
+    timeline: this.timeline,
   };
   get flatData() {
     return this.flattenData(this.data);
   }
+  get chartTemplate() {
+    switch (this.chartType) {
+      case ChartType.linechart:
+        return this.linechartTemplate;
+      case ChartType.barchart:
+        return this.barchartTemplate;
+      default:
+        return null;
+    }
+  }
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.dataService.updateFilenames();
-    this.subscriptions.push(this.dataService.dataChanged.subscribe(() => this.updateData()));
-    this.subscriptions.push(this.dataService.visibilityChanged.subscribe(f => {
-      this.data.find(df => df.filename === f.filename).visisble = f.visisble;
-      this.chartDataFromData();
-    }));
-    this.subscriptions.push(this.dataService.optionChanged.subscribe(() => {
-      this.updateData(true);
-    }));
+    this.subscriptions.push(
+      this.dataService.dataChanged.subscribe(() => this.updateData())
+    );
+    this.subscriptions.push(
+      this.dataService.visibilityChanged.subscribe((f) => {
+        const d = this.data.find((df) => df.filename === f.filename);
+        if (d) {
+          d.visisble = f.visisble;
+        }
+        this.chartDataFromData();
+      })
+    );
+    this.subscriptions.push(
+      this.dataService.optionChanged.subscribe(() => {
+        this.updateData(true);
+      })
+    );
     this.updateData();
     this.updateContext();
   }
 
   updateData(optionChanged?: boolean) {
-    if (!_.isEmpty(_.xor(this.data.map(d => d.filename), this.dataService.filenames)) || optionChanged) {
+    if (
+      !_.isEmpty(
+        _.xor(
+          this.data.map((d) => d.filename),
+          this.dataService.filenames
+        )
+      ) ||
+      optionChanged
+    ) {
+      this.isLoading = true;
       this.dataService
-        .getAggregatedData(this.aggregationType, {interval: this.sliderFC.value})
-        .subscribe((data: AggregationPacket<T>[]) => {
-          this.newDataFromService(data);
-        });
+        .getAggregatedData(this.aggregationType, {
+          interval: this.sliderFC.value,
+        })
+        .subscribe(
+          (data: AggregationPacket<T>[]) => {
+            this.isLoading = false;
+            this.newDataFromService(data);
+          },
+          (error) => {
+            console.error(error);
+            this.isLoading = false;
+          }
+        );
     }
   }
 
@@ -107,15 +157,17 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
       xAxisLabel: this.xAxisLabel,
       yAxisLabel: this.yAxisLabel,
       chartData: this.chartData,
-      timeline: this.timeline
+      timeline: this.timeline,
     };
   }
 
   ngOnDestroy() {
-    this.subscriptions.forEach(s => s.unsubscribe());
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    this.cdr.detectChanges();
+  }
 
   formatXAxisLabel(value: Date) {
     return value.toLocaleTimeString();
@@ -143,9 +195,17 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
 
   changeInterval(interval: number) {
     this.dataService
-      .getAggregatedData(this.aggregationType, {interval})
+      .getAggregatedData(this.aggregationType, { interval })
       .subscribe((data: AggregationPacket<T>[]) => {
         this.newDataFromService(data);
       });
+  }
+
+  show(v) {
+    console.log(v);
+  }
+
+  keys(o) {
+    return Object.keys(o);
   }
 }

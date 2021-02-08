@@ -6,6 +6,10 @@
     height: 100%;
 }
 
+::ng-deep.drawer-container .mat-drawer-content {
+    overflow: hidden;
+}
+
 .menu-list {
     // padding: 10px;
 

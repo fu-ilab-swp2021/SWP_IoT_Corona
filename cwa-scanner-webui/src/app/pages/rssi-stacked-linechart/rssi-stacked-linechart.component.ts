@@ -1,11 +1,15 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { AggregationPacket, RssiStackedPacket } from 'src/app/models/cwa-packet.model';
+import { ChartType } from 'src/app/chart/chart.component';
+import {
+  AggregationPacket,
+  RssiStackedPacket
+} from 'src/app/models/cwa-packet.model';
 import { AGGREGATION_TYPES } from '../../services/data.service';
 
 @Component({
   selector: 'app-rssi-stacked-linechart',
   templateUrl: './rssi-stacked-linechart.component.html',
-  styleUrls: ['./rssi-stacked-linechart.component.scss']
+  styleUrls: ['./rssi-stacked-linechart.component.scss'],
 })
 export class RssiStackedLinechartComponent
   implements OnInit, AfterViewInit, OnDestroy {
@@ -13,6 +17,7 @@ export class RssiStackedLinechartComponent
   xAxisLabel = 'Time';
   yAxisLabel = 'Packet count per RSSI range';
   aggregationType = AGGREGATION_TYPES.rssi_stacked;
+  chartType = ChartType.linechart;
 
   ngOnInit() {}
 
@@ -44,19 +49,21 @@ export class RssiStackedLinechartComponent
     const chartData = [];
     Object.keys(flatData).forEach((t) => {
       Object.keys(flatData[t]).forEach((range) => {
-        const series = chartData.find(s => s.name === range);
+        const series = chartData.find((s) => s.name === range);
         if (series) {
           series.series.push({
             name: new Date(Number(t) * 1000),
-            value: flatData[t][range]
+            value: flatData[t][range],
           });
         } else {
           chartData.push({
             name: range,
-            series: [{
-              name: new Date(Number(t) * 1000),
-              value: flatData[t][range]
-            }],
+            series: [
+              {
+                name: new Date(Number(t) * 1000),
+                value: flatData[t][range],
+              },
+            ],
             show: true,
           });
         }

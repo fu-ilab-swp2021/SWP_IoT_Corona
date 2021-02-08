@@ -27,7 +27,7 @@ export class DataService {
   newDataArrived = new Subject();
   dataChanged = new Subject();
   visibilityChanged = new Subject<DataFileInfo>();
-  onlyCwaFC = new FormControl(false);
+  onlyCwaFC = new FormControl(true);
   optionChanged = new Subject();
 
   get filenames() {

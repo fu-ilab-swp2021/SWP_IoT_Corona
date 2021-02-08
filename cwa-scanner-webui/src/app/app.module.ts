@@ -16,7 +16,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
-import { RssiLinechartMapComponent } from './pages/rssi-linechart-map/rssi-linechart-map.component';
+import { MapTimelineComponent } from './pages/map-timeline/map-timeline.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -32,6 +32,7 @@ import { PpmLinechartComponent } from './pages/ppm-linechart/ppm-linechart.compo
 import { DpmLinechartComponent } from './pages/dpm-linechart/dpm-linechart.component';
 import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-linechart.component';
 import { GoogleMapsModule } from '@angular/google-maps';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -40,13 +41,13 @@ import { GoogleMapsModule } from '@angular/google-maps';
     FileUploadComponent,
     PpmLinechartComponent,
     FileUploadDialogComponent,
-    RssiLinechartMapComponent,
+    MapTimelineComponent,
     HomeComponent,
     RssiDistributionComponent,
     DpmLinechartComponent,
     ChartComponent,
     RssiStackedLinechartComponent,
-    AvgRssiLinechartComponent
+    AvgRssiLinechartComponent,
   ],
   imports: [
     BrowserModule,
@@ -70,7 +71,8 @@ import { GoogleMapsModule } from '@angular/google-maps';
     NgxChartsModule,
     MatTooltipModule,
     MatSlideToggleModule,
-    GoogleMapsModule
+    GoogleMapsModule,
+    MatProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent],

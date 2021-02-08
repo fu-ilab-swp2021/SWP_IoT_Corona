@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChartType } from 'src/app/chart/chart.component';
 import { AggregationPacket, AvgRssiPacket } from 'src/app/models/cwa-packet.model';
 import { AGGREGATION_TYPES } from '../../services/data.service';
 
@@ -13,6 +14,7 @@ export class AvgRssiLinechartComponent
   xAxisLabel = 'Time';
   yAxisLabel = 'Average RSSI value';
   aggregationType = AGGREGATION_TYPES.avg_rssi;
+  chartType = ChartType.linechart;
 
   ngOnInit() {}
 

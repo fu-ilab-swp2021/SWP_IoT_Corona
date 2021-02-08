@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChartType } from 'src/app/chart/chart.component';
 import { AggregationPacket, PpmPacket, RssiDistPacket } from 'src/app/models/cwa-packet.model';
 import { AGGREGATION_TYPES } from '../../services/data.service';
 
@@ -14,6 +15,7 @@ export class RssiDistributionComponent
   yAxisLabel = 'Packet count';
   aggregationType = AGGREGATION_TYPES.rssi_dist;
   legend = false;
+  chartType = ChartType.barchart;
 
   ngOnInit() {}
 
