@@ -131,9 +131,10 @@ void stor_flush(void)
     size_t len;
     char file[FILENAME_MAXLEN];
 
-    double lat = 52.123;
-    double lon = 4.123;
-    snprintf(file, sizeof(file), "/f/%dx%d", (int)lat, (int)lon);
+    // double lat = 52.123;
+    // double lon = 4.123;
+    // snprintf(file, sizeof(file), "/f/%dx%d", (int)lat, (int)lon);
+    snprintf(file, sizeof(file), "/f/%s", "050221" );
 
     /* copy buffer and clear inbuf */
     mutex_lock(&_buflock);
@@ -155,7 +156,7 @@ void stor_flush(void)
         printf("\nstor.c|stor_flush|f 2  = %d", f);
 
         if (f < 0) {
-            // printf("\nstor.c|stor_flush|unable to open file");
+            printf("\nstor.c|stor_flush|unable to open file");
             DEBUG("[stor] _flush: unable to open file '%s'\n", file);
             return;
         } 
