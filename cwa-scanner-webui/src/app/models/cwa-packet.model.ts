@@ -1,3 +1,9 @@
+export interface AggregationPacket<T> {
+  filename: string;
+  data: T;
+  visisble?: boolean;
+}
+
 export interface BlePacket {
   time: number;
   rssi: number;
@@ -22,4 +28,24 @@ export interface DpmPacket {
 }
 export interface RssiDistPacket {
   [rssiRange: string]: number;
+}
+
+export interface RssiStackedPacket {
+  [time: string]: {
+    [rssiRange: string]: number;
+  };
+}
+export interface AvgRssiPacket {
+  [time: string]: {
+    sum: number;
+    count: number;
+    avg: number;
+  };
+}
+
+export interface DataFileInfo {
+  filename: string;
+  first: number;
+  last: number;
+  visisble?: boolean;
 }

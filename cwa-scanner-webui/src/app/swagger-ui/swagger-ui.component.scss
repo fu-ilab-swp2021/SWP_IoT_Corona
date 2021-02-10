@@ -1,0 +1,8 @@
+::ng-deep.swagger-container {
+    overflow: auto;
+    max-height: calc(100% - 65px);
+}
+::ng-deep.swagger-container .wrapper {
+    overflow: auto;
+    max-height: calc(100% - 467px);
+}

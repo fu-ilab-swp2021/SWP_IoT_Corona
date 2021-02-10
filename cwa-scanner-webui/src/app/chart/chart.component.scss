@@ -1,0 +1,63 @@
+.chart-wrapper {
+    margin-top: 20px;
+    background-color: white;
+    display: flex;
+    width: 100%;
+    height: 80vh;
+    justify-content: space-around;
+    .chart-container {
+        width: 90%;
+        max-height: calc(100% - 250px);
+        height: 80%;
+
+        .chart-legend {
+            width: 100% !important;
+        }
+        ::ng-deep.legend-wrap {
+            height: 250px;
+            overflow: auto;
+        }
+    }
+}
+
+.tooltip-list-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+}
+
+.tooltip-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 5px;
+}
+
+.tooltip-spacer {
+    flex: 1 1 auto;
+    min-width: 20px;
+}
+
+.tooltip-series {
+    text-align: left;
+}
+
+.tooltip-value {
+    text-align: right;
+}
+
+.slider-container {
+    width: 100%;
+    padding: 0 20px;
+    // background-color: white;
+    position: absolute;
+    bottom: 0;
+
+    .confirm-button {
+        margin-left: 10px;
+    }
+}
+
+mat-spinner {
+    top: calc(50% - 50px);
+}

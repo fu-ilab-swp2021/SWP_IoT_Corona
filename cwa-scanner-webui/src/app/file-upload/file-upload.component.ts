@@ -26,6 +26,8 @@ interface ChartSeries {
 export class FileUploadComponent implements OnInit, AfterViewInit {
   fileControl = new FormControl();
   file: File;
+  aggFC = new FormControl(false);
+  isLoading = false;
 
   constructor(
     private httpService: HttpService,
@@ -42,12 +44,17 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {}
 
   upload() {
-    this.httpService.uploadFile(this.file).subscribe(
-      (d: BlePacket[]) => {
-        this.dataService.addDataFile(d, this.file.name);
-        this.dataService.updateDataFiles();
+    if (!this.file) {
+      return;
+    }
+    this.isLoading = true;
+    this.httpService.uploadFile(this.file, this.aggFC.value).subscribe(
+      () => {
+        this.isLoading = false;
+        this.dataService.updateFilenames();
       },
       (e) => {
+        this.isLoading = false;
         console.error(e);
       }
     );

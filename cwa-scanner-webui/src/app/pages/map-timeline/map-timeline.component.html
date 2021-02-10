@@ -1,0 +1,22 @@
+<google-map
+  width="90%"
+  height="600px"
+  [options]="options"
+  (mapClick)="addMarker($event)"
+  #map
+>
+  <map-marker
+    *ngFor="let markerPosition of markerPositions"
+    [position]="markerPosition"
+    [options]="markerOptions"
+  >
+  </map-marker>
+</google-map>
+<!-- [formControl]="sliderFC" -->
+<mat-slider
+  thumbLabel
+  tickInterval="1"
+  step="5"
+  min="5"
+  max="120"
+></mat-slider>

@@ -57,3 +57,8 @@ ricorder/bin
 #miscellaneous
 .vagrant
 .vscode
+
+.gradle
+.idea
+build
+local.properties

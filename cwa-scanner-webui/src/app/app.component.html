@@ -21,19 +21,25 @@
     </button>
     <!-- <span routerLink="" style="cursor: pointer;">CWA Scanner Web UI</span> -->
     <div class="flex-spacer"></div>
+    <mat-slide-toggle [formControl]="dataService.onlyCwaFC" class="only-cwa-toggle">Only CWA</mat-slide-toggle>
     <button mat-raised-button #menuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="menu" style="margin-right: 10px">
       Uploaded data
       <mat-icon>list</mat-icon>
     </button>
-    <mat-menu #menu="matMenu">
+    <mat-menu #menu="matMenu" class="file-menu" xPosition="before">
       <div (click)="$event.stopPropagation();$event.preventDefault();">
         <button mat-menu-item *ngIf="!dataService.filenames || dataService.filenames.length < 1">
           No files uploaded
         </button>
-        <button mat-menu-item *ngFor="let f of dataService.filenames">
-          <mat-icon (click)="deleteData(f)">cancel</mat-icon>
-          {{f}}
-        </button>
+        <div (click)="$event.stopPropagation()" class="file-menu-item" [disableRipple]="true" mat-menu-item *ngFor="let f of dataFilesInfo">
+          <mat-icon matTooltipPosition="left" matTooltip="Delete" (click)="deleteData(f.filename)">cancel</mat-icon>
+          {{f.filename}}
+          <div class="flex-spacer"></div>
+          <span [matTooltip]="getFullDateLabel(f)">
+            ({{ getDateLabel(f) }})
+          </span>
+          <mat-slide-toggle class="visible-toggle" [formControl]="visibleMap.get(f.filename)" matTooltip="Visible"></mat-slide-toggle>
+        </div>
         <button mat-menu-item (click)="openUploadDialog()">
           <mat-icon>add_circle</mat-icon>
           Add data
