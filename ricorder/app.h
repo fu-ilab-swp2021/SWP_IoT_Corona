@@ -58,7 +58,7 @@ void scanner_getcount(scanner_stats_t *stats);
 
 int stor_init(void);
 int stor_write_ln(char *line, size_t len);
-void stor_flush(void);
+int stor_flush(void);
 void save_gps_location(char *file_name, double latitude, double longitude);
 
 void ui_init(void);
@@ -66,6 +66,7 @@ void ui_boot_msg(const char *msg);
 void ui_update_scanner(void);
 void ui_update_gps(void);
 void ui_update_menu(void);
+void ui_error_screen(void);
 
 void set_gps_mode(void *arg);
 void set_scanner_mode(void *arg);

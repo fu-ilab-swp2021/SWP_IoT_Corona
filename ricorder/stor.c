@@ -125,8 +125,7 @@ int stor_write_ln(char *line, size_t len)
     return 0;
 }
 
-// void stor_flush(float *lat, float *lon)
-void stor_flush(void)
+int stor_flush(void)
 {
     size_t len;
     char file[FILENAME_MAXLEN];
@@ -146,7 +145,7 @@ void stor_flush(void)
     mutex_unlock(&_buflock);
 
     if (len == 0) {
-        return;
+        return -1;
     }
 
     /* write data to FS */
@@ -160,7 +159,8 @@ void stor_flush(void)
         if (f < 0) {
             // printf("\nstor.c|stor_flush|unable to open file");
             DEBUG("[stor] _flush: unable to open file '%s'\n", file);
-            return;
+
+            return -1;
         } 
     } else {
         // printf("\nNew GPS log line written.");
@@ -179,6 +179,7 @@ void stor_flush(void)
         // printf("\nstor.c|stor_flush|Everything seems to work");
     }
     vfs_close(f);
+    return 0;
 }
 
 
