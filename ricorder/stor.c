@@ -156,7 +156,7 @@ void stor_flush(void)
         printf("\nstor.c|stor_flush|f 2  = %d", f);
 
         if (f < 0) {
-            printf("\nstor.c|stor_flush|unable to open file");
+            // printf("\nstor.c|stor_flush|unable to open file");
             DEBUG("[stor] _flush: unable to open file '%s'\n", file);
             return;
         } 
