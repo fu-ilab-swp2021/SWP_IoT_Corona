@@ -29,18 +29,17 @@ def all_option_combinations(i, o, options):
 def preprocess_aggregation(path, filename, ps):
     for agg in aggregation_option_mapping:
         for options in all_option_combinations(0, {}, aggregation_option_mapping[agg]):
-            optionsfolder = 'opt'
+            optionsname = 'opt'
             for k in options:
-                optionsfolder += '.' + k + '_' + str(options[k])
-            aggPath = join(path, agg, optionsfolder, filename+'.json')
+                optionsname += '.' + k + '_' + str(options[k])
+            aggPath = join(path, filename, agg, optionsname+'.json')
             aggregationFunction = getAggregationFunction(agg)
             fileData = aggregationFunction(ps, options)
-            if not os.path.exists(join(path, agg, optionsfolder)):
-                os.makedirs(join(path, agg, optionsfolder))
+            if not os.path.exists(join(path, filename, agg)):
+                os.makedirs(join(path, filename, agg))
             f = open(aggPath, "w")
             f.write(json.dumps(fileData))
             f.close()
-
 
 def onlyCWA(options):
     return options is not None and 'only_cwa' in options and options['only_cwa']
@@ -156,23 +155,23 @@ def rssi_distribution(ps, options=None):
     return fileData
 
 
-def combineAggregationFiles(path, files, aggregation_type, aggregationFunction, options=None):
+def combineAggregationFiles(data_path, agg_path, files, aggregation_type, aggregationFunction, options=None):
     result = []
     for filename in files:
-        optionsfolder = 'opt'
+        optionsname = 'opt'
         if options is not None:
             for k in options:
-                optionsfolder += '.' + k + '_' + str(options[k])
-        aggPath = join(path,aggregation_type, optionsfolder, filename+'.json')
+                optionsname += '.' + k + '_' + str(options[k])
+        aggPath = join(agg_path, filename, aggregation_type, optionsname+'.json')
         if os.path.exists(aggPath):
             f = open(aggPath, "r")
             fileData = json.loads(f.read())
             f.close()
         else:
-            ps = readData(path, filename=filename)
+            ps = readData(data_path, filename=filename)
             fileData = aggregationFunction(ps, options)
-            if not os.path.exists(join(path,aggregation_type, optionsfolder)):
-                os.makedirs(join(path,aggregation_type, optionsfolder))
+            if not os.path.exists(join(agg_path, filename, aggregation_type)):
+                os.makedirs(join(agg_path,filename, aggregation_type))
             f = open(aggPath, "w")
             f.write(json.dumps(fileData))
             f.close()
@@ -182,9 +181,9 @@ def combineAggregationFiles(path, files, aggregation_type, aggregationFunction, 
         })
     return result
 
-def aggregate(aggregation_type, path, files, options=None):
+def aggregate(aggregation_type, data_path, agg_path, files, options=None):
     f = getAggregationFunction(aggregation_type)
-    return combineAggregationFiles(path, files, aggregation_type, f, options) if f is not None else []
+    return combineAggregationFiles(data_path, agg_path, files, aggregation_type, f, options) if f is not None else []
 
 aggregation_function_mapping = {
     "packets_per_minute": packets_per_minute,
