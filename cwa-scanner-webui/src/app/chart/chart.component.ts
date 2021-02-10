@@ -128,9 +128,9 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
     ) {
       this.isLoading = true;
       this.dataService
-        .getAggregatedData(this.aggregationType, {
+        .getAggregatedData(this.aggregationType, this.showIntervalSlider ? {
           interval: this.sliderFC.value,
-        })
+        } : {})
         .subscribe(
           (data: AggregationPacket<T>[]) => {
             this.isLoading = false;
@@ -194,10 +194,15 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   }
 
   changeInterval(interval: number) {
+    this.isLoading = true;
     this.dataService
       .getAggregatedData(this.aggregationType, { interval })
       .subscribe((data: AggregationPacket<T>[]) => {
+        this.isLoading = false;
         this.newDataFromService(data);
+      }, (error) => {
+        console.error(error);
+        this.isLoading = false;
       });
   }
 

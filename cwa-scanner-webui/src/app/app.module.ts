@@ -33,6 +33,7 @@ import { DpmLinechartComponent } from './pages/dpm-linechart/dpm-linechart.compo
 import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-linechart.component';
 import { GoogleMapsModule } from '@angular/google-maps';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [
@@ -72,7 +73,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatTooltipModule,
     MatSlideToggleModule,
     GoogleMapsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCheckboxModule
   ],
   providers: [],
   bootstrap: [AppComponent],

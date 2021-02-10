@@ -52,8 +52,14 @@
       </div>
     </ng-template>
     <ng-template #tooltipTemplate let-item="model">
-      <p>{{ item.name | date: "medium" }}</p>
-      <p>{{ item.series }}: {{ item.value | number }}</p>
+      <!-- <p>{{ item.name | date: "medium" }}</p>
+      <p>{{ item.series }}: {{ item.value | number }}</p> -->
+      <span>{{ item.name | date: "MMM d, y, HH:mm:ss" }}</span>
+      <div class="tooltip-list-item">
+        <span class="tooltip-series">{{ item.series }}:</span>
+        <div class="tooltip-spacer"></div>
+        <span class="tooltip-value">{{ item.value | number }}</span>
+      </div>
     </ng-template>
   </ngx-charts-line-chart>
 </ng-template>

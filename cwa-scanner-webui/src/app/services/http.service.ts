@@ -10,10 +10,10 @@ import { UploadedDataItem } from './data.service';
 export class HttpService {
   constructor(private http: HttpClient) {}
 
-  uploadFile(f: File) {
+  uploadFile(f: File, aggregate: boolean) {
     const formData = new FormData();
     formData.append('fileKey', f, f.name);
-    return this.http.post('/api/upload-cwa-data-from-file', formData);
+    return this.http.post('/api/upload-cwa-data-from-file' + (aggregate ? '?aggregate=true' : ''), formData);
   }
 
   getFilenames(): Observable<DataFileInfo[]> {

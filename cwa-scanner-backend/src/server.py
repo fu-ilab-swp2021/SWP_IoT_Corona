@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, Response
 from flask_swagger import swagger
 from flask_cors import CORS
 from .tools.adparser import ADParser
-from .tools.data_handling import aggregate
+from .tools.data_handling import aggregate, all_option_combinations, preprocess_aggregation
 import numpy as np
 import json
 
@@ -48,6 +48,37 @@ class Server():
     def serve(self, host="localhost", port=5080, debug=True):
         self.app.run(host, port, debug)
     
+    def preprocessFile(self, filename, content, calculateAggregations=False, overwriteJson=True):
+        print('PREPROCCESING '+filename)
+        path = join(self.app.config['UPLOAD_PATH'], filename+'.json')
+        ps = []
+        if overwriteJson or not os.path.exists(path):
+            res = ADParser(content, fromfile=False)
+            ps = res.getPkts()
+            addNoiseToCoordinates(ps)
+            f = open(path, "w")
+            f.write(json.dumps(ps))
+            f.close()
+        else:
+            f = open(path, "r")
+            s = f.read()
+            f.close()
+            ps = json.loads(s)
+        pExists = fileExists(filename)
+        if pExists:
+            data_files.remove(pExists)
+        print('PARSING DONE')
+        if calculateAggregations:
+            preprocess_aggregation(self.app.config['UPLOAD_PATH'], filename, ps)
+            print('AGGREGATIONS DONE')
+        data_files.append({
+            "filename": filename,
+            "first": ps[0]["time"] * 1000,
+            "last": ps[-1]["time"] * 1000
+        })
+        print('-----------------')
+        return ps
+    
     def initFolder(self):
         if not os.path.exists(self.app.config['UPLOAD_PATH']):
             os.makedirs(self.app.config['UPLOAD_PATH'])
@@ -57,24 +88,9 @@ class Server():
                 for filename in onlyfiles:
                     path = join(self.app.config['UPLOAD_PATH'], filename)
                     if not filename.endswith(".json"):
-                        if (filename+".json") not in onlyfiles:
-                            res = ADParser([path], fromfile=True)
-                            ps = res.getPkts()
-                            print(filename)
-                            print(len(ps))
-                            addNoiseToCoordinates(ps)
-                            f = open(path+".json", "w")
-                            f.write(json.dumps(ps))
-                            f.close()
-                        f = open(path+".json", "r")
-                        s = f.read()
-                        f.close()
-                        ps = json.loads(s)
-                        data_files.append({
-                            "filename": filename,
-                            "first": ps[0]["time"] * 1000,
-                            "last": ps[-1]["time"] * 1000
-                        })
+                        f = open(path, "r")
+                        content = f.read()
+                        self.preprocessFile(filename, content, calculateAggregations=True, overwriteJson=False)
             except Exception as e:
                 print(e)
                 exit(1)
@@ -122,22 +138,8 @@ class Server():
                 f = open(path, "w")
                 f.write(s)
                 f.close()
-            res = ADParser(s, fromfile=False)
-            ps = res.getPkts()
-            addNoiseToCoordinates(ps)
-            if path is not None:
-                f = open(path+".json", "w")
-                f.write(json.dumps(ps))
-                f.close()
-            pExists = fileExists(file.filename)
-            if pExists:
-                data_files.remove(pExists)
-            data_files.append({
-                "filename": file.filename,
-                "first": ps[0]["time"] * 1000,
-                "last": ps[-1]["time"] * 1000
-            })
-            return jsonify(ps), 200
+            self.preprocessFile(file.filename, s, calculateAggregations=(request.args.get('aggregate')=='true'), overwriteJson=True)
+            return jsonify('uploaded'), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data/<filename>', methods=['POST'])
         def uploadData(filename):
@@ -146,6 +148,12 @@ class Server():
             ---
             tags:
                 - CWA scanner data
+            parameters:
+                - name: aggregate
+                  in: query
+                  description: Whether to preprocess all aggregations
+                  required: false
+                  type: boolean
             produces:
                 - application/json
             responses:
@@ -161,21 +169,8 @@ class Server():
             f = open(path, "w")
             f.write(s)
             f.close()
-            res = ADParser(s, fromfile=False)
-            ps = res.getPkts()
-            addNoiseToCoordinates(ps)
-            f = open(path+".json", "w")
-            f.write(json.dumps(ps))
-            f.close()
-            pExists = fileExists(filename)
-            if pExists:
-                data_files.remove(pExists)
-            data_files.append({
-                "filename": filename,
-                "first": ps[0]["time"] * 1000,
-                "last": ps[-1]["time"] * 1000
-            })
-            return jsonify(ps), 200
+            self.preprocessFile(filename, s, calculateAggregations=(request.args.get('aggregate')=='true'), overwriteJson=True)
+            return jsonify('uploaded'), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/cwa-data/<filename>', methods=['GET'])
         def getData(filename):
