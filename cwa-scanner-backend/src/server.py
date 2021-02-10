@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, Response
 from flask_swagger import swagger
 from flask_cors import CORS
 from .tools.adparser import ADParser
-from .tools.data_handling import aggregate, all_option_combinations, preprocess_aggregation
+from .tools.data_handling import aggregate, all_option_combinations, preprocess_aggregation, parse_gps_file
 import numpy as np
 import json
 import shutil
@@ -39,10 +39,11 @@ class Server():
     def __init__(self, production, preprocess):
         self.app = Flask("cwa-scanner-backend")
         self.app.config['UPLOAD_PATH'] = 'upload-data'
-        self.app.config['RAW_PATH'] = join('upload-data', 'raw')
-        self.app.config['JSON_PATH'] = join('upload-data', 'json')
-        self.app.config['AGG_PATH'] = join('upload-data', 'aggregations')
-        cors = CORS(self.app, resources={r"/api/*": {"origins": "*"}})
+        self.app.config['RAW_PATH'] = join(self.app.config['UPLOAD_PATH'], 'raw')
+        self.app.config['JSON_PATH'] = join(self.app.config['UPLOAD_PATH'], 'json')
+        self.app.config['AGG_PATH'] = join(self.app.config['UPLOAD_PATH'], 'aggregations')
+        self.app.config['GPS_PATH'] = join(self.app.config['UPLOAD_PATH'], 'gps.json')
+        CORS(self.app, resources={r"/api/*": {"origins": "*"}})
         self.production = production
         self.preprocess = preprocess
         self.initFolder()
@@ -100,6 +101,10 @@ class Server():
             f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'w')
             f.write(json.dumps([]))
             f.close()
+        if not os.path.exists(self.app.config['GPS_PATH']):
+            f = open(self.app.config['GPS_PATH'], 'w')
+            f.write(json.dumps([]))
+            f.close()
         else:
             try:
                 onlyfiles = [f for f in listdir(self.app.config['RAW_PATH']) if isfile(join(self.app.config['RAW_PATH'], f))]
@@ -154,6 +159,66 @@ class Server():
         def status():
             return jsonify("Status OK - Production mode: " + str(self.production)), 200
         
+        @self.app.route(self.ROOT_URL_PATH+'/upload-gps-data-from-file', methods=['POST'])
+        def uploadGpsDataFromFile():
+            """
+            Upload GPS scanner data from a file from the SD card
+            ---
+            tags:
+                - CWA scanner data
+            produces:
+                - application/json
+            responses:
+                201:
+                    description: The data was uploaded
+                400:
+                    description: The data could not be uploaded
+                500:
+                    description: The data could not be uploaded
+            """
+            file = request.files['fileKey']
+            s = file.read().decode("utf-8")
+            new = parse_gps_file(s)
+            f = open(self.app.config['GPS_PATH'], "r")
+            old = json.loads(f.read())
+            f.close()
+            result = []
+            for oldG in old:
+                add = True
+                for newG in new:
+                    if oldG['filename'] == newG['filename']:
+                        add = False
+                if add:
+                    result.append(oldG)
+            for newG in new:
+                result.append(newG)
+            f = open(self.app.config['GPS_PATH'], "w")
+            f.write(json.dumps(result))
+            f.close()
+            return jsonify('uploaded'), 200
+        
+        @self.app.route(self.ROOT_URL_PATH+'/gps-data', methods=['DELETE'])
+        def deleteGpsData():
+            """
+            Delete GPS scanner data
+            ---
+            tags:
+                - CWA scanner data
+            produces:
+                - application/json
+            responses:
+                200:
+                    description: The data was deleted
+                400:
+                    description: The data could not be deleted
+                500:
+                    description: The data could not be deleted
+            """
+            f = open(self.app.config['GPS_PATH'], "w")
+            f.write(json.dumps([]))
+            f.close()
+            return jsonify('deleted'), 200
+
         @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data-from-file', methods=['POST'])
         def uploadDataFromFile():
             """
@@ -171,15 +236,15 @@ class Server():
                 500:
                     description: The data could not be uploaded
             """
-            file = request.files['fileKey']
-            path = None
-            s = file.read().decode("utf-8")
-            if file.filename != '':
-                path = join(self.app.config['RAW_PATH'], file.filename)
-                f = open(path, "w")
-                f.write(s)
-                f.close()
-            self.preprocessFile(file.filename, s, calculateAggregations=(request.args.get('aggregate')=='true'), overwriteJson=True)
+            for f in request.files:
+                file = request.files[f]
+                s = file.read().decode("utf-8")
+                if file.filename != '':
+                    path = join(self.app.config['RAW_PATH'], file.filename)
+                    f = open(path, "w")
+                    f.write(s)
+                    f.close()
+                    self.preprocessFile(file.filename, s, calculateAggregations=(request.args.get('aggregate')=='true'), overwriteJson=True)
             return jsonify('uploaded'), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data/<filename>', methods=['POST'])
@@ -405,6 +470,6 @@ class Server():
             options = None
             if "options" in body:
                 options = body["options"]
-            data = aggregate(aggregation_type, self.app.config["JSON_PATH"], self.app.config["AGG_PATH"], dataFiles, options)
+            data = aggregate(aggregation_type, self.app.config, dataFiles, options)
             return jsonify(data), 200
             

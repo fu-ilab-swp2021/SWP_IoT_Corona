@@ -3,29 +3,35 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
-import { AggregationPacket, BlePacket, TotalValuesPacket } from '../../models/cwa-packet.model';
-import { AGGREGATION_TYPES, DataService, UploadedDataItem } from '../../services/data.service';
+import {
+  AggregationPacket,
+  BlePacket,
+  TotalValuesPacket,
+} from '../../models/cwa-packet.model';
+import {
+  AGGREGATION_TYPES,
+  DataService,
+  UploadedDataItem,
+} from '../../services/data.service';
 
 @Component({
   selector: 'app-map-timeline',
   templateUrl: './map-timeline.component.html',
   styleUrls: ['./map-timeline.component.scss'],
 })
-export class MapComponent
-  implements OnInit, AfterViewInit, OnDestroy {
-
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   aggregationType = AGGREGATION_TYPES.total_values;
   options: google.maps.MapOptions = {
     center: {
       lat: 52.4403357,
-      lng: 13.2416195
+      lng: 13.2416195,
     },
-    zoom: 12
+    zoom: 12,
   };
   heatmap: google.maps.visualization.HeatmapLayer = null;
   @ViewChild('map') map: GoogleMap;
@@ -35,10 +41,10 @@ export class MapComponent
   subscriptions: Subscription[] = [];
   isLoading = false;
   markerOptions: google.maps.MarkerOptions = {
-    draggable: false
+    draggable: false,
   };
   get data(): AggregationPacket<TotalValuesPacket>[] {
-    return this.unfilteredData.filter(p => p.visisble);
+    return this.unfilteredData.filter((p) => p.visisble);
   }
 
   constructor(private dataService: DataService) {}
@@ -47,6 +53,9 @@ export class MapComponent
     this.dataService.updateFilenames();
     this.subscriptions.push(
       this.dataService.dataChanged.subscribe(() => this.updateData())
+    );
+    this.subscriptions.push(
+      this.dataService.gpsChanged.subscribe(() => this.updateData(true))
     );
     this.subscriptions.push(
       this.dataService.visibilityChanged.subscribe((f) => {
@@ -77,7 +86,15 @@ export class MapComponent
     this.heatmap?.setMap(null);
     this.heatmap = new google.maps.visualization.HeatmapLayer({
       map: this.map.googleMap,
-      data: this.data.map(f => ({location: new google.maps.LatLng(f.data.location.lat, f.data.location.lng), weight: f.data.cwa_per_min})),
+      data: this.data
+        .filter((f) => !!f.data.location)
+        .map((f) => ({
+          location: new google.maps.LatLng(
+            f.data.location.lat,
+            f.data.location.lng
+          ),
+          weight: f.data.cwa_per_min,
+        })),
       radius: 70,
     });
   }
@@ -108,18 +125,16 @@ export class MapComponent
       optionChanged
     ) {
       this.isLoading = true;
-      this.dataService
-        .getAggregatedData(this.aggregationType, {})
-        .subscribe(
-          (data: AggregationPacket<TotalValuesPacket>[]) => {
-            setTimeout(() => this.isLoading = false, 50);
-            this.newDataFromService(data);
-          },
-          (error) => {
-            console.error(error);
-            setTimeout(() => this.isLoading = false, 50);
-          }
-        );
+      this.dataService.getAggregatedData(this.aggregationType, {}).subscribe(
+        (data: AggregationPacket<TotalValuesPacket>[]) => {
+          setTimeout(() => (this.isLoading = false), 50);
+          this.newDataFromService(data);
+        },
+        (error) => {
+          console.error(error);
+          setTimeout(() => (this.isLoading = false), 50);
+        }
+      );
     }
   }
 
@@ -133,7 +148,10 @@ export class MapComponent
     }));
   }
 
-  openInfoWindow(marker: MapMarker, file: AggregationPacket<TotalValuesPacket>) {
+  openInfoWindow(
+    marker: MapMarker,
+    file: AggregationPacket<TotalValuesPacket>
+  ) {
     this.infoWindow.open(marker);
     this.selectedFile = file;
   }

@@ -1,0 +1,26 @@
+.upload-form {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    width: 350px;
+    margin: 10px auto 0 auto;
+    padding-top: 15px;
+    border-radius: 4px;
+    max-height: 70px;
+
+    > button {
+        margin-left: 10px;
+        margin-bottom: 18px;
+    }
+
+    > mat-checkbox {
+        margin-right: 5px;
+    }
+
+    mat-spinner {
+        left: 18px;
+        bottom: 8px;
+    }
+}

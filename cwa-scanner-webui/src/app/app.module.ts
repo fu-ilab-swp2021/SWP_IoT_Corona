@@ -34,6 +34,8 @@ import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-l
 import { GoogleMapsModule } from '@angular/google-maps';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { GpsUploadComponent } from './gps-upload/gps-upload.component';
+import { GpsUploadDialogComponent } from './gps-upload/gps-upload-dialog.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +51,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     ChartComponent,
     RssiStackedLinechartComponent,
     AvgRssiLinechartComponent,
+    GpsUploadComponent,
+    GpsUploadDialogComponent
   ],
   imports: [
     BrowserModule,

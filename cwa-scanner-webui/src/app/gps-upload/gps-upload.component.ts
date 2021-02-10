@@ -13,14 +13,13 @@ interface ChartSeries {
 }
 
 @Component({
-  selector: 'app-file-upload',
-  templateUrl: './file-upload.component.html',
-  styleUrls: ['./file-upload.component.scss'],
+  selector: 'app-gps-upload',
+  templateUrl: './gps-upload.component.html',
+  styleUrls: ['./gps-upload.component.scss'],
 })
-export class FileUploadComponent implements OnInit, AfterViewInit {
+export class GpsUploadComponent implements OnInit, AfterViewInit {
   fileControl = new FormControl();
-  files: File[] = [];
-  aggFC = new FormControl(false);
+  file: File;
   isLoading = false;
 
   constructor(
@@ -29,22 +28,22 @@ export class FileUploadComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.fileControl.valueChanges.subscribe((files) => {
-      this.files = files;
+    this.fileControl.valueChanges.subscribe((file) => {
+      this.file = file;
     });
   }
 
   ngAfterViewInit() {}
 
   upload() {
-    if (this.files.length < 1) {
+    if (!this.file) {
       return;
     }
     this.isLoading = true;
-    this.httpService.uploadFile(this.files, this.aggFC.value).subscribe(
+    this.httpService.uploadGpsFile(this.file).subscribe(
       () => {
         this.isLoading = false;
-        this.dataService.updateFilenames();
+        this.dataService.gpsChanged.next();
       },
       (e) => {
         this.isLoading = false;

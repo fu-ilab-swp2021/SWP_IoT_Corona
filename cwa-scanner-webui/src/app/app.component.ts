@@ -3,9 +3,11 @@ import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { FileUploadDialogComponent } from './file-upload/file-upload-dialog.component';
+import { GpsUploadDialogComponent } from './gps-upload/gps-upload-dialog.component';
 import { DataFileInfo } from './models/cwa-packet.model';
 import { PAGES } from './pages/pages.model';
 import { DataService } from './services/data.service';
+import { HttpService } from './services/http.service';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -19,7 +21,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     public dataService: DataService,
-    private uploadDialog: MatDialog
+    private dialog: MatDialog,
+    private httpService: HttpService
   ) {}
 
   ngOnInit() {
@@ -61,8 +64,20 @@ export class AppComponent implements OnInit {
     this.dataFilesInfo = info;
   }
 
-  openUploadDialog() {
-    this.uploadDialog.open(FileUploadDialogComponent);
+  openDataUploadDialog() {
+    this.dialog.open(FileUploadDialogComponent);
+  }
+
+  openGpsUploadDialog() {
+    this.dialog.open(GpsUploadDialogComponent);
+  }
+
+  deleteGpsData() {
+    if (confirm('Do you really want to delete all GPS data?')) {
+      this.httpService.deleteGpsData().subscribe(() => {
+        this.dataService.gpsChanged.next();
+      });
+    }
   }
 
   getDateLabel(f: DataFileInfo) {

@@ -22,11 +22,11 @@
     <!-- <span routerLink="" style="cursor: pointer;">CWA Scanner Web UI</span> -->
     <div class="flex-spacer"></div>
     <mat-slide-toggle [formControl]="dataService.onlyCwaFC" class="only-cwa-toggle">Only CWA</mat-slide-toggle>
-    <button mat-raised-button #menuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="menu" style="margin-right: 10px">
+    <button mat-raised-button #dataMenuTrigger="matMenuTrigger" (menuOpened)="updateFilenames()" [matMenuTriggerFor]="dataMenu" style="margin-right: 10px">
       Uploaded data
       <mat-icon>list</mat-icon>
     </button>
-    <mat-menu #menu="matMenu" class="file-menu" xPosition="before">
+    <mat-menu #dataMenu="matMenu" class="file-menu" xPosition="before">
       <div (click)="$event.stopPropagation();$event.preventDefault();">
         <button mat-menu-item *ngIf="!dataService.filenames || dataService.filenames.length < 1">
           No files uploaded
@@ -40,9 +40,26 @@
           </span>
           <mat-slide-toggle class="visible-toggle" [formControl]="visibleMap.get(f.filename)" matTooltip="Visible"></mat-slide-toggle>
         </div>
-        <button mat-menu-item (click)="openUploadDialog()">
+        <button mat-menu-item (click)="openDataUploadDialog()">
           <mat-icon>add_circle</mat-icon>
           Add data
+        </button>
+      </div>
+    </mat-menu>
+    <button mat-raised-button #gpsMenuTrigger="matMenuTrigger" [matMenuTriggerFor]="gpsMenu" style="margin-right: 10px">
+      GPS data
+      <mat-icon>place</mat-icon>
+    </button>
+    <mat-menu #gpsMenu="matMenu" class="file-menu" xPosition="before">
+      <div (click)="$event.stopPropagation();$event.preventDefault();">
+        <div (click)="$event.stopPropagation();deleteGpsData()" class="file-menu-item" [disableRipple]="true" mat-menu-item>
+          <mat-icon matTooltipPosition="left" matTooltip="Delete">cancel</mat-icon>
+            Delete GPS data
+          <div class="flex-spacer"></div>
+        </div>
+        <button mat-menu-item (click)="openGpsUploadDialog()">
+          <mat-icon>add_circle</mat-icon>
+          Add GPS data
         </button>
       </div>
     </mat-menu>

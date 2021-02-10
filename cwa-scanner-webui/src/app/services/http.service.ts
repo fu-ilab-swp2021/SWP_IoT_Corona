@@ -10,10 +10,22 @@ import { UploadedDataItem } from './data.service';
 export class HttpService {
   constructor(private http: HttpClient) {}
 
-  uploadFile(f: File, aggregate: boolean) {
+  uploadFile(files: File[], aggregate: boolean) {
     const formData = new FormData();
-    formData.append('fileKey', f, f.name);
+    files.forEach((f, i) => {
+      formData.append('fileKey_' + i, f, f.name);
+    });
     return this.http.post('/api/upload-cwa-data-from-file' + (aggregate ? '?aggregate=true' : ''), formData);
+  }
+
+  uploadGpsFile(file: File) {
+    const formData = new FormData();
+    formData.append('fileKey', file, file.name);
+    return this.http.post('/api/upload-gps-data-from-file', formData);
+  }
+
+  deleteGpsData() {
+    return this.http.delete('/api/gps-data');
   }
 
   getFilenames(): Observable<DataFileInfo[]> {

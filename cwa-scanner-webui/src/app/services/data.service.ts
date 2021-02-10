@@ -27,6 +27,7 @@ export class DataService {
   initialData$ = new Subject();
   newDataArrived = new Subject();
   dataChanged = new Subject();
+  gpsChanged = new Subject();
   visibilityChanged = new Subject<DataFileInfo>();
   onlyCwaFC = new FormControl(true);
   optionChanged = new Subject();
