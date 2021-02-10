@@ -50,10 +50,6 @@ class Server():
         self.app.run(host, port, debug)
     
     def initFolder(self):
-        print("Hello 123")
-        if not os.path.exists('test'):
-            os.makedirs('test')
-
         if not os.path.exists(self.app.config['UPLOAD_PATH']):
             os.makedirs(self.app.config['UPLOAD_PATH'])
         else:
