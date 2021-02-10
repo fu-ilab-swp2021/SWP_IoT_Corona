@@ -21,6 +21,9 @@
 # author: Hauke Petersen <hauke.petersen@fu-berlin.de>
 
 
+import os
+from os import listdir, lstat
+from os.path import isfile, join
 import re
 from enum import Enum
 
@@ -60,13 +63,17 @@ class Addr():
 
 
 class Pkt():
-    def __init__(self, time, type, addr, rssi, payload, raw):
+    def __init__(self, time, type, addr, rssi, payload, raw, lat=None, lon=None):
         self.time = time
         self.type = type
         self.addr = addr
         self.rssi = rssi
         self.payload = payload
         self.raw = raw
+        # self.location = {
+        #     'lat': lat,
+        #     'lng': lon,
+        # }
 
     def __str__(self):
         return "TIME:{} SRC:{} RSSI:{}dbm".format(self.time, self.addr, self.rssi)
@@ -79,6 +86,7 @@ class Pkt():
             'rssi': self.rssi,
             'payload': self.payload,
             'raw': self.raw,
+            # 'location': self.location,
         }
 
     def static(self):
@@ -112,14 +120,19 @@ class ADParser():
                             r'(?P<event_type>\d);'
                             r'(?P<addr_type>\d);(?P<addr>[:a-fA-F0-9]+);'
                             r'(?P<rssi>-?\d+);'
-                            r'(?P<payload>[a-zA-Z0-9]+)', line)
+                            r'(?P<payload>[a-zA-Z0-9]+)',
+                            # r'(?P<lat>\d{1,3}\.\d+);'
+                            # r'(?P<lon>\d{1,3}\.\d+)',
+                            line)
             if m:
-
+                print(cnt)
                 pkt = Pkt(float(m.group("time")),
                             EventType(int(m.group("event_type"))),
                             Addr(m.group("addr_type"), m.group("addr")),
                             int(m.group("rssi")),
                             m.group("payload"),
+                            # float(m.group("lat")),
+                            # float(m.group("lon")),
                             line)
                 self.pkts.append(pkt)
 

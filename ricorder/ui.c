@@ -154,3 +154,11 @@ void ui_update_menu(void)
         u8g2_DrawStr(&_disp, 0, 43, "BTN 2: Scanner Mode");
     } while(u8g2_NextPage(&_disp));
 }
+
+void ui_error_screen(void)
+{
+    u8g2_FirstPage(&_disp);
+    do {
+        u8g2_DrawStr(&_disp, 0, 10, "SD Card Error");
+    } while(u8g2_NextPage(&_disp));
+}

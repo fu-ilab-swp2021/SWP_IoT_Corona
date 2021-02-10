@@ -42,13 +42,17 @@ void gps_mode(void)
 }
 
 
-void scanner_mode(float *lat, float *lon, xtimer_ticks32_t last_wakeup)
+void scanner_mode(xtimer_ticks32_t last_wakeup)
 {
 
     printf("\nmodi.c|scanner_mode");
    
-    ui_update_scanner();
-    stor_flush(lat, lon);
+    int res = stor_flush();
+    if (res != 0) {
+        ui_error_screen();
+    } else {
+        ui_update_scanner();
+    }
     xtimer_periodic_wakeup(&last_wakeup, UPDATE_DELAY);
 }
 
