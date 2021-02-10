@@ -34,16 +34,18 @@ class Server():
     ROOT_URL_PATH = "/api"
 
     production = False
+    preprocess = False
 
-    def __init__(self, production):
+    def __init__(self, production, preprocess):
         self.app = Flask("cwa-scanner-backend")
         self.app.config['UPLOAD_PATH'] = 'upload-data'
         self.app.config['RAW_PATH'] = join('upload-data', 'raw')
         self.app.config['JSON_PATH'] = join('upload-data', 'json')
         self.app.config['AGG_PATH'] = join('upload-data', 'aggregations')
-        self.initFolder()
         cors = CORS(self.app, resources={r"/api/*": {"origins": "*"}})
         self.production = production
+        self.preprocess = preprocess
+        self.initFolder()
         self.initRoutes()
 
     def getApp(self):
@@ -59,7 +61,7 @@ class Server():
         if overwriteJson or not os.path.exists(path):
             res = ADParser(content, fromfile=False)
             ps = res.getPkts()
-            addNoiseToCoordinates(ps)
+            # addNoiseToCoordinates(ps)
             f = open(path, "w")
             f.write(json.dumps(ps))
             f.close()
@@ -105,7 +107,7 @@ class Server():
                     path = join(self.app.config['RAW_PATH'], filename)
                     f = open(path, "r")
                     content = f.read()
-                    self.preprocessFile(filename, content, calculateAggregations=True, overwriteJson=False)
+                    self.preprocessFile(filename, content, calculateAggregations=self.preprocess, overwriteJson=False)
             except Exception as e:
                 print(e)
                 exit(1)

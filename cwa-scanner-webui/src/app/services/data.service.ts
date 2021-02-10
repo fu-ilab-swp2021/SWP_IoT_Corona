@@ -11,6 +11,7 @@ export enum AGGREGATION_TYPES {
   dpm = 'devices_per_minute',
   rssi_stacked = 'rssi_stacked_per_minute',
   avg_rssi = 'avg_rssi_per_minute',
+  total_values = 'total_values'
 }
 export interface UploadedDataItem {
   data: BlePacket[];

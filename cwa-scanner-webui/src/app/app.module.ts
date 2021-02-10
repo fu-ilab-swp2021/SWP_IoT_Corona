@@ -16,7 +16,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
-import { MapTimelineComponent } from './pages/map-timeline/map-timeline.component';
+import { MapComponent } from './pages/map-timeline/map-timeline.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -42,7 +42,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     FileUploadComponent,
     PpmLinechartComponent,
     FileUploadDialogComponent,
-    MapTimelineComponent,
+    MapComponent,
     HomeComponent,
     RssiDistributionComponent,
     DpmLinechartComponent,

@@ -5,6 +5,7 @@ import json
 from os.path import join
 from .adparser import isCWA
 import os
+import numpy as np
 
 OPTION_VALUES = {
     "interval": list(range(5, 125, 5)),
@@ -106,6 +107,50 @@ def avg_rssi_per_minute(ps, options=None):
         fileData[t]["avg"] = fileData[t]["sum"] / fileData[t]["count"]
     return fileData
 
+def total_values(ps, options=None):
+    devices = []
+    lat = 52.4403357+(np.random.rand()-0.5)/10
+    lng = 13.2416195+(np.random.rand()-0.5)/10
+    fileData = {
+        "first": np.Inf,
+        "last": np.NINF,
+        "sum": 0,
+        "count": 0,
+        "cwa_count": 0,
+        "cwa_share": 0,
+        "cwa_per_min": 0,
+        "avg": 0,
+        "max": np.NINF,
+        "min": np.Inf,
+        "devices": 0,
+        "location": {
+            "lat": lat,
+            "lng": lng
+        }
+    }
+    for p in ps:
+        if onlyCWA(options) and not isCWA(p):
+            continue
+        fileData["sum"] += p["rssi"]
+        fileData["count"] += 1
+        if isCWA(p):
+            fileData["cwa_count"] += 1
+        if p["time"] > fileData["last"]:
+            fileData["last"] = p["time"]
+        if p["time"] < fileData["first"]:
+            fileData["first"] = p["time"]
+        if p["rssi"] < fileData["min"]:
+            fileData["min"] = p["rssi"]
+        if p["rssi"] > fileData["max"]:
+            fileData["max"] = p["rssi"]
+        if p["addr"] not in devices:
+            devices.append(p["addr"])
+            fileData["devices"] += 1
+    fileData["avg"] = fileData["sum"] / fileData["count"]
+    fileData["cwa_per_min"] = fileData["cwa_count"] * 60 / (fileData["last"] - fileData["first"])
+    fileData["cwa_share"] = fileData["cwa_count"] / fileData["count"]
+    return fileData
+
 def packets_per_minute(ps, options=None):
     interval = options["interval"] if options is not None else STANDARD_INTERVAL
     fileData = {}
@@ -191,6 +236,7 @@ aggregation_function_mapping = {
     "devices_per_minute": devices_per_minute,
     "rssi_stacked_per_minute": rssi_stacked_per_minute,
     "avg_rssi_per_minute": avg_rssi_per_minute,
+    "total_values": total_values,
 }
 
 aggregation_option_mapping = {
@@ -199,4 +245,5 @@ aggregation_option_mapping = {
     "devices_per_minute": ['only_cwa', 'interval'],
     "rssi_stacked_per_minute": ['only_cwa', 'interval'],
     "avg_rssi_per_minute": ['only_cwa', 'interval'],
+    "total_values": ['only_cwa']
 }
