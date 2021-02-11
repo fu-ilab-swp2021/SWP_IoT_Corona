@@ -3,86 +3,156 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
-import { GoogleMap } from '@angular/google-maps';
+import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
+import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
-import { BlePacket } from '../../models/cwa-packet.model';
-import { DataService, UploadedDataItem } from '../../services/data.service';
+import {
+  AggregationPacket,
+  BlePacket,
+  TotalValuesPacket,
+} from '../../models/cwa-packet.model';
+import {
+  AGGREGATION_TYPES,
+  DataService,
+  UploadedDataItem,
+} from '../../services/data.service';
 
 @Component({
   selector: 'app-map-timeline',
   templateUrl: './map-timeline.component.html',
   styleUrls: ['./map-timeline.component.scss'],
 })
-export class MapTimelineComponent
-  implements OnInit, AfterViewInit, OnDestroy {
-
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
+  aggregationType = AGGREGATION_TYPES.total_values;
   options: google.maps.MapOptions = {
     center: {
       lat: 52.4403357,
-      lng: 13.2416195
+      lng: 13.2416195,
     },
-    zoom: 12
+    zoom: 12,
   };
   heatmap: google.maps.visualization.HeatmapLayer = null;
   @ViewChild('map') map: GoogleMap;
-  data: UploadedDataItem[] = [];
-  dataSubscription: Subscription;
-  visibleSupscription: Subscription;
+  @ViewChild(MapInfoWindow) infoWindow: MapInfoWindow;
+  selectedFile: AggregationPacket<TotalValuesPacket> = null;
+  unfilteredData: AggregationPacket<TotalValuesPacket>[] = [];
+  subscriptions: Subscription[] = [];
+  isLoading = false;
   markerOptions: google.maps.MarkerOptions = {
-    draggable: false
+    draggable: false,
   };
-  markerPositions: google.maps.LatLngLiteral[] = [];
-  get flatData(): BlePacket[] {
-    // TODO
-    return [];
+  get data(): AggregationPacket<TotalValuesPacket>[] {
+    return this.unfilteredData.filter((p) => p.visisble);
   }
 
   constructor(private dataService: DataService) {}
 
   ngOnInit(): void {
-    this.dataSubscription = this.dataService.dataChanged.subscribe(() => {
-      this.dataService.getDataFiles().subscribe((dataFiles) => {
-        this.newDataFromService(dataFiles);
-      });
-    });
     this.dataService.updateFilenames();
-    this.visibleSupscription = this.dataService.visibilityChanged.subscribe((f) => {
-      // this.data.find(df => df.filename === f.filename).visisble = f.visisble;
-      this.chartAndHeatMapFromData();
-    });
+    this.subscriptions.push(
+      this.dataService.dataChanged.subscribe(() => this.updateData())
+    );
+    this.subscriptions.push(
+      this.dataService.gpsChanged.subscribe(() => this.updateData(true))
+    );
+    this.subscriptions.push(
+      this.dataService.visibilityChanged.subscribe((f) => {
+        const d = this.unfilteredData.find((df) => df.filename === f.filename);
+        if (d) {
+          d.visisble = f.visisble;
+          this.heatMapFromData();
+        }
+      })
+    );
+    this.subscriptions.push(
+      this.dataService.optionChanged.subscribe(() => {
+        this.updateData(true);
+      })
+    );
+    this.updateData();
   }
 
   ngOnDestroy() {
-    this.dataSubscription?.unsubscribe();
-    this.visibleSupscription?.unsubscribe();
+    this.subscriptions.forEach((s) => s.unsubscribe());
   }
 
   ngAfterViewInit() {
-    this.setHeatmap();
+    this.heatMapFromData();
   }
 
   setHeatmap() {
     this.heatmap?.setMap(null);
     this.heatmap = new google.maps.visualization.HeatmapLayer({
       map: this.map.googleMap,
-      data: [new google.maps.LatLng(52.4403357, 13.2416195)],
-      radius: 30,
+      data: this.data
+        .filter((f) => !!f.data.location)
+        .map((f) => ({
+          location: new google.maps.LatLng(
+            f.data.location.lat,
+            f.data.location.lng
+          ),
+          weight: f.data.cwa_per_min,
+        })),
+      radius: 70,
     });
   }
 
-  newDataFromService(dataFiles: UploadedDataItem[]) {
-    this.chartAndHeatMapFromData();
+  newDataFromService(data: AggregationPacket<TotalValuesPacket>[]) {
+    this.dataChanged(data);
+    this.heatMapFromData();
   }
 
-  chartAndHeatMapFromData() {
+  heatMapFromData() {
     if (this.map) {
       this.setHeatmap();
     }
   }
 
-  addMarker(event: google.maps.MapMouseEvent) {
-    this.markerPositions.push(event.latLng.toJSON());
+  positionFromFile(f: AggregationPacket<TotalValuesPacket>) {
+    return f.data.location;
+  }
+
+  updateData(optionChanged?: boolean) {
+    if (
+      !_.isEmpty(
+        _.xor(
+          this.data.map((d) => d.filename),
+          this.dataService.filenames
+        )
+      ) ||
+      optionChanged
+    ) {
+      this.isLoading = true;
+      this.dataService.getAggregatedData(this.aggregationType, {}).subscribe(
+        (data: AggregationPacket<TotalValuesPacket>[]) => {
+          setTimeout(() => (this.isLoading = false), 50);
+          this.newDataFromService(data);
+        },
+        (error) => {
+          console.error(error);
+          setTimeout(() => (this.isLoading = false), 50);
+        }
+      );
+    }
+  }
+
+  dataChanged(d: AggregationPacket<TotalValuesPacket>[]) {
+    this.unfilteredData = d.map((df) => ({
+      filename: df.filename,
+      data: df.data,
+      visisble: this.dataService.dataFilesInfo.find(
+        (f) => f.filename === df.filename
+      ).visisble,
+    }));
+  }
+
+  openInfoWindow(
+    marker: MapMarker,
+    file: AggregationPacket<TotalValuesPacket>
+  ) {
+    this.infoWindow.open(marker);
+    this.selectedFile = file;
   }
 }

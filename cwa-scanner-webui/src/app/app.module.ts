@@ -16,7 +16,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
-import { MapTimelineComponent } from './pages/map-timeline/map-timeline.component';
+import { MapComponent } from './pages/map-timeline/map-timeline.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -34,6 +34,8 @@ import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-l
 import { GoogleMapsModule } from '@angular/google-maps';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { GpsUploadComponent } from './gps-upload/gps-upload.component';
+import { GpsUploadDialogComponent } from './gps-upload/gps-upload-dialog.component';
 
 @NgModule({
   declarations: [
@@ -42,13 +44,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     FileUploadComponent,
     PpmLinechartComponent,
     FileUploadDialogComponent,
-    MapTimelineComponent,
+    MapComponent,
     HomeComponent,
     RssiDistributionComponent,
     DpmLinechartComponent,
     ChartComponent,
     RssiStackedLinechartComponent,
     AvgRssiLinechartComponent,
+    GpsUploadComponent,
+    GpsUploadDialogComponent
   ],
   imports: [
     BrowserModule,

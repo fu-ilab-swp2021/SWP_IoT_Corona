@@ -1,5 +1,5 @@
 import { RssiDistributionComponent } from './rssi-distribution/rssi-distribution.component';
-import { MapTimelineComponent } from './map-timeline/map-timeline.component';
+import { MapComponent } from './map-timeline/map-timeline.component';
 import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { RssiStackedLinechartComponent } from './rssi-stacked-linechart/rssi-stacked-linechart.component';
@@ -7,18 +7,18 @@ import { AvgRssiLinechartComponent } from './avg-rssi-linechart/avg-rssi-linecha
 
 export const PAGES = [
   {
+    path: 'map',
+    icon: 'place',
+    title: 'Map',
+    previewPath: 'assets/img/map_preview.png',
+    component: MapComponent
+  },
+  {
     path: 'ppm-linechart',
     icon: 'stacked_line_chart',
     title: '#Packets per interval',
     previewPath: 'assets/img/ppm_linechart_preview.png',
     component: PpmLinechartComponent
-  },
-  {
-    path: 'map-timeline',
-    icon: 'place',
-    title: 'Map & timeline',
-    previewPath: 'assets/img/rssi_linechart_map_preview.png',
-    component: MapTimelineComponent
   },
   {
     path: 'rssi-distribution',

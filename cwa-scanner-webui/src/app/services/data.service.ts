@@ -11,6 +11,7 @@ export enum AGGREGATION_TYPES {
   dpm = 'devices_per_minute',
   rssi_stacked = 'rssi_stacked_per_minute',
   avg_rssi = 'avg_rssi_per_minute',
+  total_values = 'total_values'
 }
 export interface UploadedDataItem {
   data: BlePacket[];
@@ -26,6 +27,7 @@ export class DataService {
   initialData$ = new Subject();
   newDataArrived = new Subject();
   dataChanged = new Subject();
+  gpsChanged = new Subject();
   visibilityChanged = new Subject<DataFileInfo>();
   onlyCwaFC = new FormControl(true);
   optionChanged = new Subject();
@@ -52,12 +54,13 @@ export class DataService {
     return this.getFilenamesRemote().pipe(
       map((info) => {
         const newFile = !info.every((f) => this.dataFilesInfo.find(df => df.filename === f.filename));
+        const fileDeleted = !this.dataFilesInfo.every((f) => info.find(df => df.filename === f.filename));
         info.forEach(f => {
           const f3 = this.dataFilesInfo.find(f2 => f2.filename === f.filename);
           f.visisble = f3 ? f3.visisble : false;
         });
         this.dataFilesInfo = info;
-        if (newFile) {
+        if (newFile || fileDeleted) {
           this.dataChanged.next();
         }
         return info;

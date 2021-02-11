@@ -5,9 +5,10 @@ from flask import Flask, jsonify, request, Response
 from flask_swagger import swagger
 from flask_cors import CORS
 from .tools.adparser import ADParser
-from .tools.data_handling import aggregate, all_option_combinations, preprocess_aggregation
+from .tools.data_handling import aggregate, all_option_combinations, preprocess_aggregation, parse_gps_file
 import numpy as np
 import json
+import shutil
 
 data_files = []
 
@@ -33,13 +34,19 @@ class Server():
     ROOT_URL_PATH = "/api"
 
     production = False
+    preprocess = False
 
-    def __init__(self, production):
+    def __init__(self, production, preprocess):
         self.app = Flask("cwa-scanner-backend")
         self.app.config['UPLOAD_PATH'] = 'upload-data'
-        self.initFolder()
-        cors = CORS(self.app, resources={r"/api/*": {"origins": "*"}})
+        self.app.config['RAW_PATH'] = join(self.app.config['UPLOAD_PATH'], 'raw')
+        self.app.config['JSON_PATH'] = join(self.app.config['UPLOAD_PATH'], 'json')
+        self.app.config['AGG_PATH'] = join(self.app.config['UPLOAD_PATH'], 'aggregations')
+        self.app.config['GPS_PATH'] = join(self.app.config['UPLOAD_PATH'], 'gps.json')
+        CORS(self.app, resources={r"/api/*": {"origins": "*"}})
         self.production = production
+        self.preprocess = preprocess
+        self.initFolder()
         self.initRoutes()
 
     def getApp(self):
@@ -50,12 +57,12 @@ class Server():
     
     def preprocessFile(self, filename, content, calculateAggregations=False, overwriteJson=True):
         print('PREPROCCESING '+filename)
-        path = join(self.app.config['UPLOAD_PATH'], filename+'.json')
+        path = join(self.app.config['JSON_PATH'], filename+'.json')
         ps = []
         if overwriteJson or not os.path.exists(path):
             res = ADParser(content, fromfile=False)
             ps = res.getPkts()
-            addNoiseToCoordinates(ps)
+            # addNoiseToCoordinates(ps)
             f = open(path, "w")
             f.write(json.dumps(ps))
             f.close()
@@ -68,9 +75,13 @@ class Server():
         if pExists:
             data_files.remove(pExists)
         print('PARSING DONE')
-        if calculateAggregations:
-            preprocess_aggregation(self.app.config['UPLOAD_PATH'], filename, ps)
+        if calculateAggregations and (not self.getAggregationCalculated(filename) or overwriteJson):
+            print('AGGREGATIONS BEGIN')
+            preprocess_aggregation(self.app.config['AGG_PATH'], filename, ps)
+            self.setAggregationCalculated(filename)
             print('AGGREGATIONS DONE')
+        else:
+            print('AGGREGATIONS SKIPPED')
         data_files.append({
             "filename": filename,
             "first": ps[0]["time"] * 1000,
@@ -80,20 +91,56 @@ class Server():
         return ps
     
     def initFolder(self):
-        if not os.path.exists(self.app.config['UPLOAD_PATH']):
-            os.makedirs(self.app.config['UPLOAD_PATH'])
+        if not os.path.exists(self.app.config['RAW_PATH']):
+            os.makedirs(self.app.config['RAW_PATH'])
+        if not os.path.exists(self.app.config['JSON_PATH']):
+            os.makedirs(self.app.config['JSON_PATH'])
+        if not os.path.exists(self.app.config['AGG_PATH']):
+            os.makedirs(self.app.config['AGG_PATH'])
+        if not os.path.exists(join(self.app.config['AGG_PATH'], 'aggregations.json')):
+            f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'w')
+            f.write(json.dumps([]))
+            f.close()
+        if not os.path.exists(self.app.config['GPS_PATH']):
+            f = open(self.app.config['GPS_PATH'], 'w')
+            f.write(json.dumps([]))
+            f.close()
         else:
             try:
-                onlyfiles = [f for f in listdir(self.app.config['UPLOAD_PATH']) if isfile(join(self.app.config['UPLOAD_PATH'], f))]
+                onlyfiles = [f for f in listdir(self.app.config['RAW_PATH']) if isfile(join(self.app.config['RAW_PATH'], f))]
                 for filename in onlyfiles:
-                    path = join(self.app.config['UPLOAD_PATH'], filename)
-                    if not filename.endswith(".json"):
-                        f = open(path, "r")
-                        content = f.read()
-                        self.preprocessFile(filename, content, calculateAggregations=True, overwriteJson=False)
+                    path = join(self.app.config['RAW_PATH'], filename)
+                    f = open(path, "r")
+                    content = f.read()
+                    self.preprocessFile(filename, content, calculateAggregations=self.preprocess, overwriteJson=False)
             except Exception as e:
                 print(e)
                 exit(1)
+
+    def getAggregationCalculated(self, filename):
+        f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'r')
+        s = json.loads(f.read())
+        f.close()
+        return filename in s
+    
+    def setAggregationCalculated(self, filename):
+        f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'r')
+        s = json.loads(f.read())
+        f.close()
+        f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'w')
+        s.append(filename)
+        f.write(json.dumps(s))
+        f.close()
+    
+    def deleteAggregationCalculated(self, filename):
+        f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'r')
+        s = json.loads(f.read())
+        f.close()
+        f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'w')
+        if filename in s:
+            s.remove(filename)
+        f.write(json.dumps(s))
+        f.close()
 
     def initRoutes(self):
 
@@ -113,6 +160,66 @@ class Server():
         def status():
             return jsonify("Status OK - Production mode: " + str(self.production)), 200
         
+        @self.app.route(self.ROOT_URL_PATH+'/upload-gps-data-from-file', methods=['POST'])
+        def uploadGpsDataFromFile():
+            """
+            Upload GPS scanner data from a file from the SD card
+            ---
+            tags:
+                - CWA scanner data
+            produces:
+                - application/json
+            responses:
+                201:
+                    description: The data was uploaded
+                400:
+                    description: The data could not be uploaded
+                500:
+                    description: The data could not be uploaded
+            """
+            file = request.files['fileKey']
+            s = file.read().decode("utf-8")
+            new = parse_gps_file(s)
+            f = open(self.app.config['GPS_PATH'], "r")
+            old = json.loads(f.read())
+            f.close()
+            result = []
+            for oldG in old:
+                add = True
+                for newG in new:
+                    if oldG['filename'] == newG['filename']:
+                        add = False
+                if add:
+                    result.append(oldG)
+            for newG in new:
+                result.append(newG)
+            f = open(self.app.config['GPS_PATH'], "w")
+            f.write(json.dumps(result))
+            f.close()
+            return jsonify('uploaded'), 200
+        
+        @self.app.route(self.ROOT_URL_PATH+'/gps-data', methods=['DELETE'])
+        def deleteGpsData():
+            """
+            Delete GPS scanner data
+            ---
+            tags:
+                - CWA scanner data
+            produces:
+                - application/json
+            responses:
+                200:
+                    description: The data was deleted
+                400:
+                    description: The data could not be deleted
+                500:
+                    description: The data could not be deleted
+            """
+            f = open(self.app.config['GPS_PATH'], "w")
+            f.write(json.dumps([]))
+            f.close()
+            return jsonify('deleted'), 200
+
         @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data-from-file', methods=['POST'])
         def uploadDataFromFile():
             """
@@ -130,15 +237,15 @@ class Server():
                 500:
                     description: The data could not be uploaded
             """
-            file = request.files['fileKey']
-            path = None
-            s = file.read().decode("utf-8")
-            if file.filename != '':
-                path = join(self.app.config['UPLOAD_PATH'], file.filename)
-                f = open(path, "w")
-                f.write(s)
-                f.close()
-            self.preprocessFile(file.filename, s, calculateAggregations=(request.args.get('aggregate')=='true'), overwriteJson=True)
+            for f in request.files:
+                file = request.files[f]
+                s = file.read().decode("utf-8")
+                if file.filename != '':
+                    path = join(self.app.config['RAW_PATH'], file.filename)
+                    f = open(path, "w")
+                    f.write(s)
+                    f.close()
+                    self.preprocessFile(file.filename, s, calculateAggregations=(request.args.get('aggregate')=='true'), overwriteJson=True)
             return jsonify('uploaded'), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/upload-cwa-data/<filename>', methods=['POST'])
@@ -165,7 +272,7 @@ class Server():
                     description: The data could not be uploaded
             """
             s = request.data.decode('utf-8').replace('\r\n','\n')
-            path = join(self.app.config['UPLOAD_PATH'], filename)
+            path = join(self.app.config['RAW_PATH'], filename)
             f = open(path, "w")
             f.write(s)
             f.close()
@@ -197,9 +304,9 @@ class Server():
                     description: The data could not be sent
             """
             if request.headers["Accept"] == "application/json":
-                path = join(self.app.config['UPLOAD_PATH'], filename+".json")
+                path = join(self.app.config['JSON_PATH'], filename+".json")
             else:
-                path = join(self.app.config['UPLOAD_PATH'], filename)
+                path = join(self.app.config['RAW_PATH'], filename)
             try:
                 f = open(path, "r")
                 s = f.read()
@@ -238,10 +345,16 @@ class Server():
                 pExists = fileExists(filename)
                 if pExists:
                     data_files.remove(pExists)
-                    path = join(self.app.config['UPLOAD_PATH'], filename)
-                    if os.path.exists(path) and os.path.exists(path+".json"):
+                    path = join(self.app.config['RAW_PATH'], filename)
+                    if os.path.exists(path):
                         os.remove(path)
-                        os.remove(path+".json")
+                    path = join(self.app.config['JSON_PATH'], filename+'.json')
+                    if os.path.exists(path):
+                        os.remove(path)
+                    path = join(self.app.config['AGG_PATH'], filename)
+                    if os.path.exists(path):
+                        shutil.rmtree(path)
+                    self.deleteAggregationCalculated(filename)
                 else:
                     return jsonify({"error": "Data not found"}),404
             except Exception as e:
@@ -269,15 +382,18 @@ class Server():
             """
             data = []
             try:
-                onlyfiles = [f for f in listdir(self.app.config['UPLOAD_PATH']) if isfile(join(self.app.config['UPLOAD_PATH'], f))]
-                for filename in onlyfiles:
-                    path = join(self.app.config['UPLOAD_PATH'], filename)
-                    if request.headers["Accept"] == "application/json" and filename.endswith(".json"):
+                if request.headers["Accept"] == "application/json":
+                    onlyfiles = [f for f in listdir(self.app.config['JSON_PATH']) if isfile(join(self.app.config['JSON_PATH'], f))]
+                    for filename in onlyfiles:
+                        path = join(self.app.config['UPLOAD_PATH'], filename)
                         f = open(path, "r")
                         s = f.read()
                         f.close()
                         data.append({"name": filename.removesuffix(".json"), "data": json.loads(s)})
-                    elif request.headers["Accept"] != "application/json" and not filename.endswith(".json"):
+                elif request.headers["Accept"] != "application/json":
+                    onlyfiles = [f for f in listdir(self.app.config['RAW_PATH']) if isfile(join(self.app.config['RAW_PATH'], f))]
+                    for filename in onlyfiles:
+                        path = join(self.app.config['UPLOAD_PATH'], filename)
                         f = open(path, "r")
                         s = f.read()
                         f.close()
@@ -355,6 +471,6 @@ class Server():
             options = None
             if "options" in body:
                 options = body["options"]
-            data = aggregate(aggregation_type, self.app.config["UPLOAD_PATH"], dataFiles, options)
+            data = aggregate(aggregation_type, self.app.config, dataFiles, options)
             return jsonify(data), 200
             

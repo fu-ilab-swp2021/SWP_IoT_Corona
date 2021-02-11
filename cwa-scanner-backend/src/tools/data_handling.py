@@ -5,6 +5,9 @@ import json
 from os.path import join
 from .adparser import isCWA
 import os
+import numpy as np
+import sys
+import re
 
 OPTION_VALUES = {
     "interval": list(range(5, 125, 5)),
@@ -29,18 +32,17 @@ def all_option_combinations(i, o, options):
 def preprocess_aggregation(path, filename, ps):
     for agg in aggregation_option_mapping:
         for options in all_option_combinations(0, {}, aggregation_option_mapping[agg]):
-            optionsfolder = 'opt'
+            optionsname = 'opt'
             for k in options:
-                optionsfolder += '.' + k + '_' + str(options[k])
-            aggPath = join(path, agg, optionsfolder, filename+'.json')
+                optionsname += '.' + k + '_' + str(options[k])
+            aggPath = join(path, filename, agg, optionsname+'.json')
             aggregationFunction = getAggregationFunction(agg)
             fileData = aggregationFunction(ps, options)
-            if not os.path.exists(join(path, agg, optionsfolder)):
-                os.makedirs(join(path, agg, optionsfolder))
+            if not os.path.exists(join(path, filename, agg)):
+                os.makedirs(join(path, filename, agg))
             f = open(aggPath, "w")
             f.write(json.dumps(fileData))
             f.close()
-
 
 def onlyCWA(options):
     return options is not None and 'only_cwa' in options and options['only_cwa']
@@ -107,6 +109,54 @@ def avg_rssi_per_minute(ps, options=None):
         fileData[t]["avg"] = fileData[t]["sum"] / fileData[t]["count"]
     return fileData
 
+def total_values(ps, options=None):
+    devices = []
+    fileData = {
+        "first": sys.maxsize,
+        "last": -sys.maxsize,
+        "sum": 0,
+        "count": 0,
+        "cwa_count": 0,
+        "cwa_share": 0,
+        "cwa_per_min": 0,
+        "avg": 0,
+        "max": -sys.maxsize,
+        "min": sys.maxsize,
+        "devices": 0
+    }
+    for p in ps:
+        if onlyCWA(options) and not isCWA(p):
+            continue
+        fileData["sum"] += p["rssi"]
+        fileData["count"] += 1
+        if isCWA(p):
+            fileData["cwa_count"] += 1
+        if p["time"] > fileData["last"]:
+            fileData["last"] = p["time"]
+        if p["time"] < fileData["first"]:
+            fileData["first"] = p["time"]
+        if p["rssi"] < fileData["min"]:
+            fileData["min"] = p["rssi"]
+        if p["rssi"] > fileData["max"]:
+            fileData["max"] = p["rssi"]
+        if p["addr"] not in devices:
+            devices.append(p["addr"])
+            fileData["devices"] += 1
+    if fileData["count"] != 0:
+        fileData["avg"] = fileData["sum"] / fileData["count"]
+        fileData["cwa_share"] = fileData["cwa_count"] / fileData["count"]
+    if (fileData["last"] - fileData["first"]) != 0:
+        fileData["cwa_per_min"] = fileData["cwa_count"] * 60 / (fileData["last"] - fileData["first"])
+    if fileData["first"] == sys.maxsize:
+        fileData["first"] = 0
+    if fileData["last"] == -sys.maxsize:
+        fileData["last"] = 0
+    if fileData["min"] == sys.maxsize:
+        fileData["min"] = 0
+    if fileData["max"] == -sys.maxsize:
+        fileData["max"] = 0
+    return fileData
+
 def packets_per_minute(ps, options=None):
     interval = options["interval"] if options is not None else STANDARD_INTERVAL
     fileData = {}
@@ -143,7 +193,7 @@ def devices_per_minute(ps, options=None):
             dpm1[t] += 1
     return dpm1
 
-def rssi_distribution(ps, options=None):
+def rssi_distribution(ps, options=None,):
     fileData = {}
     for p in ps:
         if onlyCWA(options) and not isCWA(p):
@@ -156,35 +206,39 @@ def rssi_distribution(ps, options=None):
     return fileData
 
 
-def combineAggregationFiles(path, files, aggregation_type, aggregationFunction, options=None):
+def combineAggregationFiles(paths, files, aggregation_type, aggregationFunction, options=None):
+    data_path = paths['JSON_PATH']
+    agg_path = paths['AGG_PATH']
     result = []
     for filename in files:
-        optionsfolder = 'opt'
+        optionsname = 'opt'
         if options is not None:
             for k in options:
-                optionsfolder += '.' + k + '_' + str(options[k])
-        aggPath = join(path,aggregation_type, optionsfolder, filename+'.json')
+                optionsname += '.' + k + '_' + str(options[k])
+        aggPath = join(agg_path, filename, aggregation_type, optionsname+'.json')
         if os.path.exists(aggPath):
             f = open(aggPath, "r")
             fileData = json.loads(f.read())
             f.close()
         else:
-            ps = readData(path, filename=filename)
-            fileData = aggregationFunction(ps, options)
-            if not os.path.exists(join(path,aggregation_type, optionsfolder)):
-                os.makedirs(join(path,aggregation_type, optionsfolder))
+            ps = readData(data_path, filename=filename)
+            fileData = aggregationFunction(ps, options=options)
+            if not os.path.exists(join(agg_path, filename, aggregation_type)):
+                os.makedirs(join(agg_path,filename, aggregation_type))
             f = open(aggPath, "w")
             f.write(json.dumps(fileData))
             f.close()
+        if aggregationFunction == total_values:
+            add_location(fileData, paths, filename)
         result.append({
             "filename": filename,
             "data": fileData
         })
     return result
 
-def aggregate(aggregation_type, path, files, options=None):
+def aggregate(aggregation_type, paths, files, options=None):
     f = getAggregationFunction(aggregation_type)
-    return combineAggregationFiles(path, files, aggregation_type, f, options) if f is not None else []
+    return combineAggregationFiles(paths, files, aggregation_type, f, options) if f is not None else []
 
 aggregation_function_mapping = {
     "packets_per_minute": packets_per_minute,
@@ -192,6 +246,7 @@ aggregation_function_mapping = {
     "devices_per_minute": devices_per_minute,
     "rssi_stacked_per_minute": rssi_stacked_per_minute,
     "avg_rssi_per_minute": avg_rssi_per_minute,
+    "total_values": total_values
 }
 
 aggregation_option_mapping = {
@@ -200,4 +255,36 @@ aggregation_option_mapping = {
     "devices_per_minute": ['only_cwa', 'interval'],
     "rssi_stacked_per_minute": ['only_cwa', 'interval'],
     "avg_rssi_per_minute": ['only_cwa', 'interval'],
+    "total_values": ['only_cwa']
 }
+
+def parse_gps_file(content):
+    lines = content.splitlines()
+    result = []
+    for line in lines:
+        try:
+            line = line.strip()
+            if len(line) == 0:
+                continue
+            m = re.match(r'/f/(?P<filename>[^,]+),(?P<lat>\d+\.\d+),(?P<lng>\d+\.\d+)', line)
+            result.append({
+                "filename": m.group('filename'),
+                "location": {
+                    "lat": float(m.group('lat')),
+                    "lng": float(m.group('lng'))
+                }
+            })
+        except:
+            continue
+    return result
+
+def add_location(fileData, paths, filename):
+    f = open(paths["GPS_PATH"], 'r')
+    locations = json.loads(f.read())
+    f.close()
+    locations = list(filter(lambda l: l["filename"] == filename, locations))
+    if len(locations) > 0:
+        location = locations[0]["location"]
+    else:
+        location = None
+    fileData["location"] = location

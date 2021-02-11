@@ -43,6 +43,22 @@ export interface AvgRssiPacket {
   };
 }
 
+export interface TotalValuesPacket {
+  sum: number;
+  count: number;
+  cwa_count: number;
+  cwa_share: number;
+  cwa_per_min: number;
+  avg: number;
+  max: number;
+  min: number;
+  devices: number;
+  location: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export interface DataFileInfo {
   filename: string;
   first: number;
