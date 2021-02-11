@@ -1,12 +1,14 @@
-import { ViewChild } from '@angular/core';
-import { ChangeDetectorRef } from '@angular/core';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
+  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as _ from 'lodash';
@@ -38,7 +40,12 @@ const STANDARD_INTERVAL = 60;
 export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   @Input() aggregationType: AGGREGATION_TYPES;
   @Input() showIntervalSlider = true;
+  @Input() showRelativeToggle = false;
   @Input() createChartSeries: (flatData: T[]) => ChartSeries[];
+  @Input() createRelativeChartSeries: (
+    data: AggregationPacket<T>[],
+    relative: boolean
+  ) => ChartSeries[];
   @Input() flattenData: (data: AggregationPacket<T>[]) => T[];
   @Input() xAxisLabel = 'Time';
   @Input() yAxisLabel = 'Count';
@@ -55,25 +62,14 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   @Input() chartType: ChartType = ChartType.linechart;
   @ViewChild('linechartTemplate') linechartTemplate: TemplateRef<any>;
   @ViewChild('barchartTemplate') barchartTemplate: TemplateRef<any>;
+  formatXAxisTicks = this._formatXAxisTicks.bind(this);
   sliderFC = new FormControl(STANDARD_INTERVAL);
+  relativeScaleFC = new FormControl(false);
+  @Output() relativeScaleChanged = new EventEmitter();
   data: AggregationPacket<T>[] = [];
   chartData: ChartSeries[] = [];
   subscriptions: Subscription[] = [];
   isLoading = false;
-  context = {
-    colorScheme: this.colorScheme,
-    legend: this.legend,
-    autoScale: this.autoScale,
-    showXAxisLabel: this.showXAxisLabel,
-    showYAxisLabel: this.showXAxisLabel,
-    xAxis: this.xAxis,
-    formatXAxisLabel: this.formatXAxisLabel,
-    yAxis: this.yAxis,
-    xAxisLabel: this.xAxisLabel,
-    yAxisLabel: this.yAxisLabel,
-    chartData: this.chartData,
-    timeline: this.timeline,
-  };
   get flatData() {
     return this.flattenData(this.data);
   }
@@ -112,8 +108,13 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
         this.updateData(true);
       })
     );
+    this.subscriptions.push(
+      this.relativeScaleFC.valueChanges.subscribe((v) => {
+        this.chartDataFromData();
+        this.relativeScaleChanged.emit(v);
+      })
+    );
     this.updateData();
-    this.updateContext();
   }
 
   updateData(optionChanged?: boolean) {
@@ -128,9 +129,14 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
     ) {
       this.isLoading = true;
       this.dataService
-        .getAggregatedData(this.aggregationType, this.showIntervalSlider ? {
-          interval: this.sliderFC.value,
-        } : {})
+        .getAggregatedData(
+          this.aggregationType,
+          this.showIntervalSlider
+            ? {
+                interval: this.sliderFC.value,
+              }
+            : {}
+        )
         .subscribe(
           (data: AggregationPacket<T>[]) => {
             this.isLoading = false;
@@ -143,24 +149,6 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
         );
     }
   }
-
-  updateContext() {
-    this.context = {
-      colorScheme: this.colorScheme,
-      legend: this.legend,
-      autoScale: this.autoScale,
-      showXAxisLabel: this.showXAxisLabel,
-      showYAxisLabel: this.showXAxisLabel,
-      xAxis: this.xAxis,
-      formatXAxisLabel: this.formatXAxisLabel,
-      yAxis: this.yAxis,
-      xAxisLabel: this.xAxisLabel,
-      yAxisLabel: this.yAxisLabel,
-      chartData: this.chartData,
-      timeline: this.timeline,
-    };
-  }
-
   ngOnDestroy() {
     this.subscriptions.forEach((s) => s.unsubscribe());
   }
@@ -169,8 +157,12 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  formatXAxisLabel(value: Date) {
-    return value.toLocaleTimeString();
+  _formatXAxisTicks(value: Date | number) {
+    if (this.relativeScaleFC.value) {
+      return value;
+    } else {
+      return (value as Date).toLocaleTimeString();
+    }
   }
 
   newDataFromService(data: AggregationPacket<T>[]) {
@@ -189,21 +181,30 @@ export class ChartComponent<T> implements OnInit, AfterViewInit, OnDestroy {
   }
 
   chartDataFromData() {
-    this.chartData = this.createChartSeries(this.flatData);
-    this.context.chartData = this.chartData;
+    if (this.showRelativeToggle) {
+      this.chartData = this.createRelativeChartSeries(
+        this.data,
+        this.relativeScaleFC.value
+      );
+    } else {
+      this.chartData = this.createChartSeries(this.flatData);
+    }
   }
 
   changeInterval(interval: number) {
     this.isLoading = true;
     this.dataService
       .getAggregatedData(this.aggregationType, { interval })
-      .subscribe((data: AggregationPacket<T>[]) => {
-        this.isLoading = false;
-        this.newDataFromService(data);
-      }, (error) => {
-        console.error(error);
-        this.isLoading = false;
-      });
+      .subscribe(
+        (data: AggregationPacket<T>[]) => {
+          this.isLoading = false;
+          this.newDataFromService(data);
+        },
+        (error) => {
+          console.error(error);
+          this.isLoading = false;
+        }
+      );
   }
 
   show(v) {

@@ -15,12 +15,21 @@ export class AvgRssiLinechartComponent
   yAxisLabel = 'Average RSSI value';
   aggregationType = AGGREGATION_TYPES.avg_rssi;
   chartType = ChartType.linechart;
+  showRelativeToggle = true;
 
   ngOnInit() {}
 
   ngAfterViewInit() {}
 
   ngOnDestroy() {}
+
+  relativeScaleChanged(v) {
+    if (v) {
+      this.xAxisLabel = 'Time since start (s)';
+    } else {
+      this.xAxisLabel = 'Time';
+    }
+  }
 
   flattenData(data: AggregationPacket<AvgRssiPacket>[]) {
     return data.reduce((previous, current) => {
@@ -55,5 +64,40 @@ export class AvgRssiLinechartComponent
       });
     });
     return chartData;
+  }
+
+  createRelativeChartSeries(
+    data: AggregationPacket<AvgRssiPacket>[],
+    relative: boolean
+  ) {
+    if (relative) {
+      return data
+        .filter((p) => p.visisble)
+        .map((p) => {
+          const sortedKeys = Object.keys(p.data)
+            .map((k) => Number(k))
+            .sort();
+          const series = sortedKeys.map((k) => ({
+            name: k - sortedKeys[0],
+            value: p.data[String(k)].avg,
+          }));
+          return {
+            name: p.filename,
+            show: true,
+            series,
+          };
+        });
+    } else {
+      return data
+        .filter((p) => p.visisble)
+        .map((p) => ({
+          name: p.filename,
+          show: true,
+          series: Object.keys(p.data).map((k) => ({
+            name: new Date(Number(k) * 1000),
+            value: p.data[k].avg,
+          })),
+        }));
+    }
   }
 }

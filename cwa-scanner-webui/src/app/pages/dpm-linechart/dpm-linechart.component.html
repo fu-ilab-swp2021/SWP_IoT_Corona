@@ -1,9 +1,12 @@
 <app-chart
   [chartType]="chartType"
   [showIntervalSlider]="showIntervalSlider"
+  [showRelativeToggle]="showRelativeToggle"
   [createChartSeries]="createChartSeries"
+  [createRelativeChartSeries]="createRelativeChartSeries"
   [flattenData]="flattenData"
   [xAxisLabel]="xAxisLabel"
   [yAxisLabel]="yAxisLabel"
   [aggregationType]="aggregationType"
+  (relativeScaleChanged)="relativeScaleChanged($event)"
 ></app-chart>
