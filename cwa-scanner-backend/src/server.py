@@ -137,7 +137,8 @@ class Server():
         s = json.loads(f.read())
         f.close()
         f = open(join(self.app.config['AGG_PATH'], 'aggregations.json'), 'w')
-        s.remove(filename)
+        if filename in s:
+            s.remove(filename)
         f.write(json.dumps(s))
         f.close()
 

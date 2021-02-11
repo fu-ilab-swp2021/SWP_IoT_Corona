@@ -54,12 +54,13 @@ export class DataService {
     return this.getFilenamesRemote().pipe(
       map((info) => {
         const newFile = !info.every((f) => this.dataFilesInfo.find(df => df.filename === f.filename));
+        const fileDeleted = !this.dataFilesInfo.every((f) => info.find(df => df.filename === f.filename));
         info.forEach(f => {
           const f3 = this.dataFilesInfo.find(f2 => f2.filename === f.filename);
           f.visisble = f3 ? f3.visisble : false;
         });
         this.dataFilesInfo = info;
-        if (newFile) {
+        if (newFile || fileDeleted) {
           this.dataChanged.next();
         }
         return info;
