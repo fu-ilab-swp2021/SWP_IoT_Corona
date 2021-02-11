@@ -3,14 +3,14 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import {
   AggregationPacket,
-  TotalValuesPacket
+  TotalValuesPacket,
 } from '../../models/cwa-packet.model';
 import { AGGREGATION_TYPES, DataService } from '../../services/data.service';
 
