@@ -46,15 +46,27 @@
     text-align: right;
 }
 
-.slider-container {
+.controls-container {
     width: 100%;
     padding: 0 20px;
-    // background-color: white;
     position: absolute;
     bottom: 0;
+    display: flex;
+
+    .interval-slider-container {
+        font-size: 20px;
+    }
 
     .confirm-button {
         margin-left: 10px;
+    }
+
+    .relative-toggle-container {
+        display: flex;
+        align-items: flex-end;
+        margin-left: 20px;
+        padding-bottom: 15px;
+        font-size: 20px;
     }
 }
 

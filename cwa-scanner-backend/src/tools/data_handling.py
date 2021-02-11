@@ -193,6 +193,50 @@ def devices_per_minute(ps, options=None):
             dpm1[t] += 1
     return dpm1
 
+def device_info(ps, options=None):
+    devices = []
+    d_info = []
+    for p in ps:
+        if onlyCWA(options) and not isCWA(p):
+            continue
+        if p["addr"] not in devices:
+            devices.append(p["addr"])
+            d_info.append({
+                "addr": p["addr"],
+                "first": p["time"],
+                "last": p["time"],
+                "minRSSI": p["rssi"],
+                "maxRSSI": p["rssi"],
+                "count": 1,
+                "cwa_count": 1 if isCWA(p) else 0,
+                "sumRSSI": p["rssi"],
+                "times": [p["time"]]
+            })
+        else:
+            d = d_info[devices.index(p["addr"])]
+            d["times"].append(p["time"])
+            d["count"] += 1
+            d["cwa_count"] += 1 if isCWA(p) else 0
+            d["sumRSSI"] += p["rssi"]
+            if p["time"] < d["first"]:
+                d["first"] = p["time"]
+            if p["time"] > d["last"]:
+                d["last"] = p["time"]
+            if p["rssi"] > d["maxRSSI"]:
+                d["maxRSSI"] = p["rssi"]
+            if p["rssi"] < d["minRSSI"]:
+                d["minRSSI"] = p["rssi"]
+    for d in d_info:
+        d["avgRSSI"] = d["sumRSSI"] / d["count"]
+        d["times"].sort()
+        if len(d["times"]) > 1:
+            intSum = 0
+            for i in range(len(d["times"])-1):
+                intSum += d["times"][i+1] - d["times"][i]
+            d["avgInterval"] = intSum / (len(d["times"]) - 1)
+        del d["times"]
+    return d_info
+
 def rssi_distribution(ps, options=None,):
     fileData = {}
     for p in ps:
@@ -246,7 +290,8 @@ aggregation_function_mapping = {
     "devices_per_minute": devices_per_minute,
     "rssi_stacked_per_minute": rssi_stacked_per_minute,
     "avg_rssi_per_minute": avg_rssi_per_minute,
-    "total_values": total_values
+    "total_values": total_values,
+    "device_info": device_info
 }
 
 aggregation_option_mapping = {
@@ -255,7 +300,8 @@ aggregation_option_mapping = {
     "devices_per_minute": ['only_cwa', 'interval'],
     "rssi_stacked_per_minute": ['only_cwa', 'interval'],
     "avg_rssi_per_minute": ['only_cwa', 'interval'],
-    "total_values": ['only_cwa']
+    "total_values": ['only_cwa'],
+    "device_info": ['only_cwa']
 }
 
 def parse_gps_file(content):

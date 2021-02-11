@@ -4,6 +4,7 @@ import { DpmLinechartComponent } from './dpm-linechart/dpm-linechart.component';
 import { PpmLinechartComponent } from './ppm-linechart/ppm-linechart.component';
 import { RssiStackedLinechartComponent } from './rssi-stacked-linechart/rssi-stacked-linechart.component';
 import { AvgRssiLinechartComponent } from './avg-rssi-linechart/avg-rssi-linechart.component';
+import { DeviceTableComponent } from './device-table/device-table.component';
 
 export const PAGES = [
   {
@@ -12,6 +13,13 @@ export const PAGES = [
     title: 'Map',
     previewPath: 'assets/img/map_preview.png',
     component: MapComponent
+  },
+  {
+    path: 'device-table',
+    icon: 'device_unknown',
+    title: 'Device info',
+    previewPath: 'assets/img/device_table_preview.png',
+    component: DeviceTableComponent
   },
   {
     path: 'ppm-linechart',

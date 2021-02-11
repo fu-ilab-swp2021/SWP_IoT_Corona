@@ -10,14 +10,9 @@ import * as _ from 'lodash';
 import { Subscription } from 'rxjs';
 import {
   AggregationPacket,
-  BlePacket,
   TotalValuesPacket,
 } from '../../models/cwa-packet.model';
-import {
-  AGGREGATION_TYPES,
-  DataService,
-  UploadedDataItem,
-} from '../../services/data.service';
+import { AGGREGATION_TYPES, DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-map-timeline',

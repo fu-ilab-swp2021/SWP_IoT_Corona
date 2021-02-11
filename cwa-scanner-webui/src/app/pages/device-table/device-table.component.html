@@ -1,0 +1,140 @@
+<div class="accordion-container">
+  <mat-accordion class="tables-accordion" multi>
+    <mat-expansion-panel
+      class="table-expansion-panel"
+      *ngFor="let packet of data; trackBy:identify"
+    >
+      <mat-expansion-panel-header class="table-expansion-panel-header">
+        <mat-panel-title>{{ packet.filename }}</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="table-expansion-panel-body">
+        <div class="table-container">
+          <mat-table
+            [dataSource]="dataSources.get(packet.filename)"
+            matSort
+            [matSortDisableClear]="false"
+          >
+            <ng-container matColumnDef="addr">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >Address</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="address-column">
+                {{ element.addr }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="count">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >#Packets</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="numeric-column">
+                {{ element.count }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="avgRSSI">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >Avg. RSSI</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="numeric-column">
+                {{ element.avgRSSI | number: ".2-2" }}dB
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="first">
+              <mat-header-cell
+                *matHeaderCellDef
+                class="date-column"
+                mat-sort-header
+                >First</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="date-column">
+                {{ element.first * 1000 | date: "dd.MM.yy, HH:mm:ss" }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="last">
+              <mat-header-cell
+                *matHeaderCellDef
+                class="date-column"
+                mat-sort-header
+                >Last</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="date-column">
+                {{ element.last * 1000 | date: "dd.MM.yy, HH:mm:ss" }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="minRSSI">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >Min. RSSI</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="numeric-column">
+                {{ element.minRSSI }}dB
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="maxRSSI">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >Max. RSSI</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="numeric-column">
+                {{ element.maxRSSI }}dB
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="cwa_count">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >#CWA packets</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="numeric-column">
+                {{ element.cwa_count }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="avgInterval">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >Avg. adv. interval</mat-header-cell
+              >
+              <mat-cell *matCellDef="let element" class="numeric-column">
+                {{ element.avgInterval | number: ".2-3" }}s
+              </mat-cell>
+            </ng-container>
+            <mat-header-row
+              *matHeaderRowDef="
+                [
+                  'addr',
+                  'count',
+                  'avgRSSI',
+                  'first',
+                  'last',
+                  'minRSSI',
+                  'maxRSSI',
+                  'cwa_count',
+                  'avgInterval'
+                ];
+                sticky: true
+              "
+            ></mat-header-row>
+            <mat-row
+              *matRowDef="
+                let row;
+                columns: [
+                  'addr',
+                  'count',
+                  'avgRSSI',
+                  'first',
+                  'last',
+                  'minRSSI',
+                  'maxRSSI',
+                  'cwa_count',
+                  'avgInterval'
+                ]
+              "
+            ></mat-row>
+          </mat-table>
+          <mat-paginator
+            [showFirstLastButtons]="true"
+            [pageSize]="10"
+            [pageSizeOptions]="[5, 10, 15, 50, 100]"
+          ></mat-paginator>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner></mat-spinner>
+</div>

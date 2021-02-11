@@ -65,3 +65,16 @@ export interface DataFileInfo {
   last: number;
   visisble?: boolean;
 }
+
+export interface DeviceInfo {
+  addr: string;
+  avgInterval?: number;
+  avgRSSI: number;
+  first: number;
+  last: number;
+  minRSSI: number;
+  maxRSSI: number;
+  count: number;
+  cwa_count: number;
+  sumRSSI: number;
+}
