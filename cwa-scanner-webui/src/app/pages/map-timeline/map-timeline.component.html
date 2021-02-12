@@ -1,0 +1,51 @@
+<google-map
+  width="90%"
+  height="90%"
+  [options]="options"
+  #map
+>
+  <map-marker
+    #marker="mapMarker"
+    *ngFor="let file of data"
+    [position]="positionFromFile(file)"
+    [options]="markerOptions"
+    (mapClick)="openInfoWindow(marker, file)"
+  >
+  </map-marker>
+  <map-info-window (closeclick)="selectedFile = null">
+    <h3 style="margin-bottom: 8px;">{{ selectedFile?.filename }}</h3>
+    <div class="info-container">
+      <span>First:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.first * 1000 | date: "dd.MM.yy, HH:mm:ss" }}</span>
+    </div>
+    <div class="info-container">
+      <span>Last:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.last * 1000 | date: "dd.MM.yy, HH:mm:ss" }}</span>
+    </div>
+    <div class="info-container">
+      <span>Average:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.avg | number:'.2-2' }}dB</span>
+    </div>
+    <div class="info-container">
+      <span>#Packets:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.count }}</span>
+    </div>
+    <div class="info-container">
+      <span>#CWA Packets:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.cwa_count }}</span>
+    </div>
+    <div class="info-container">
+      <span>%CWA Packets:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.cwa_share | number:'.2-3' }}</span>
+    </div>
+    <div class="info-container">
+      <span>#CWA Packets/min:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.cwa_per_min | number:'.2-3' }}</span>
+    </div>
+    <div class="info-container">
+      <span>Min:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.min }}dB</span>
+    </div>
+    <div class="info-container">
+      <span>Max:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.max }}dB</span>
+    </div>
+    <div class="info-container">
+      <span>#Devices:</span><div class="flex-spacer"></div><span>{{ selectedFile?.data.devices }}</span>
+    </div>
+  </map-info-window>
+</google-map>
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner></mat-spinner>
+</div>

@@ -56,8 +56,8 @@ static vfs_mount_t flash_mount = {
     .private_data = &fs_desc,
 };
 
-// #define FSBUF_SIZE          16384U      /* 15kb buffer */
-#define FSBUF_SIZE          4096U      /* 4kb buffer */
+// #define FSBUF_SIZE          4096U      /* 4kb buffer */
+#define FSBUF_SIZE          15360U      /* 15kb buffer */
 
 static mutex_t _buflock = MUTEX_INIT;
 static char _inbuf[FSBUF_SIZE];
@@ -72,12 +72,41 @@ int stor_init(void)
 
     DEBUG("[stor] mounting FS (SD-Card)\n");
     res = vfs_mount(&flash_mount);
-    printf("\nstor_init | res: %d", res);
     if (res != 0) {
         return res;
     }
 
     return res;
+}
+
+
+void save_gps_location(char *file_name, double latitude, double longitude) {
+    int g = vfs_open("/f/gps", (O_CREAT | O_WRONLY | O_APPEND), 0);
+    if (g < 0) {
+        DEBUG("[stor] _flush: unable to open file '%s'\n", "gps");
+        return;
+    }
+
+    char gps_log_line_temp[100];
+    sprintf(gps_log_line_temp, "\n%s,%.3f,%.3f", file_name, latitude, longitude);
+    int len = strlen(gps_log_line_temp);
+    char gps_log_line[len];
+    sprintf(gps_log_line, "%s", gps_log_line_temp);
+    printf("\ngps_log_line: %s", gps_log_line);  
+
+    int n = vfs_write(g, gps_log_line, len);
+    if (n < 0) {
+        DEBUG("[stor] _flush: unable to write data\n");
+        printf("\nstor.c|stor_flush|unable to write data");
+        return;
+    }
+    else if (n != len) {
+        printf("\nstor.c|stor_flush|size written is not the given");
+        DEBUG("[stor] _flush: size written is not the given\n");
+        return;
+    }
+    printf("\nstor.c|save_gps_locaton | saved gps succesfully");
+    vfs_close(g);
 }
 
 int stor_write_ln(char *line, size_t len)
@@ -86,7 +115,7 @@ int stor_write_ln(char *line, size_t len)
     if ((_inbuf_pos + len) > FSBUF_SIZE) {
         DEBUG("[stor] _write_ln: buffer full, dropping data\n");
         mutex_unlock(&_buflock);
-        // printf("\n\nI am lost in here..");
+        printf("\nstor.c|stor_write_ln|Buffer full, dropping data");
         return 1;
     }
     memcpy(&_inbuf[_inbuf_pos], line, len);
@@ -96,64 +125,17 @@ int stor_write_ln(char *line, size_t len)
     return 0;
 }
 
-void stor_flush(float *lat, float *lon)
+int stor_flush(void)
 {
     size_t len;
     char file[FILENAME_MAXLEN];
 
-    // Current workaround for file name problem with floats.
-    int lat_1 = *lat;
-    int lat_2 = (*lat - lat_1) * 1000000;
-
-    int lon_1 = *lon;
-    int lon_2 = (*lon - lon_1) * 1000000;
-
-    float test_float = 1.2;
-
-    printf("lat 1: %d, lat 2: %d, lon_1: %d, lon_2: %d", lat_1, lat_2, lon_1, lon_2);
-
-    char file_integer[FILENAME_MAXLEN];
-    int j = snprintf(file_integer, sizeof(file_integer), "%d%d%d%d", lat_1, lat_2, lon_1, lon_2);
-    // int a = snprintf(file_name, 100, "%d%d%d%d", lat_1, lat_2, lon_1, lon_2);
-    printf("\nfile_integer: %s", file_integer);
-    printf("\nfile_integer j value: %d", j);
-
-
-    // Allocate only needed memory
-    int leng = snprintf(NULL, 0, "%fx%f", *lat, *lon);
-    printf("\nleng: %d", leng);
-    char *file_name = (char *)malloc(leng + 1);
-    int b = snprintf(file_name, leng + 1, "%fx%f", *lat, *lon);
-
-    printf("\n\nFile Name: %s", file_name);
-    printf("\nfile_name b value: %d", b);
-
-
-    free(file_name);
-
-
-    // print("\nXXX a = %d XXX", a);
-
-    // printf("\nlat f: %f", *lat);
-    // printf("\nlon f: %f", *lon);
-
     /* get filename from basetime (drop everything below hours) */
-    // uint32_t ts;
-    // wallclock_now(&ts, NULL);
-    // uint32_t base = (ts - (ts % 3600)) / 1000;
-
-
-    // int a = snprintf(file, sizeof(file) + 1, "/f/%dx%d", (int)*lat, (int)*lon);
-    // int a = snprintf(file, sizeof(file), "/f/%fx%f", *lat, *lon);
-    // int a = snprintf(file, sizeof(file), "/f/%s", file_integer);
-    int a = snprintf(file, sizeof(file), "/f/%.1f78", test_float);
-
-
-    // snprintf(file, sizeof(file), "/f/%s", file_name);
-    // printf("\nFile name: %s", file_name);
-    printf("\n\nFile: %s", file);
-    printf("\n\nFile size: %d", sizeof(file));
-    printf("\n\nXXX a = %d XXX", a);
+    uint32_t ts;
+    wallclock_now(&ts, NULL);
+    printf("\n time ts: %lu", ts);
+    uint32_t base = (ts - (ts % 60)) / 1000;
+    snprintf(file, sizeof(file), "/f/%u", (unsigned)base);
 
     /* copy buffer and clear inbuf */
     mutex_lock(&_buflock);
@@ -163,95 +145,41 @@ void stor_flush(float *lat, float *lon)
     mutex_unlock(&_buflock);
 
     if (len == 0) {
-        return;
+        return -1;
     }
-
-    printf("\nlen: %d", len);
 
     /* write data to FS */
-    int f = vfs_open(file, (O_CREAT | O_WRONLY | O_APPEND), 0);
-    printf("\nf  = %d", f);
+    int f = vfs_open(file, (O_WRONLY | O_CREAT | O_EXCL), 0);
+    printf("\nstor.c|stor_flush|f 1  = %d", f);
     if (f < 0) {
-        DEBUG("[stor] _flush: unable to open file '%s'\n", file);
-        return;
+        f = vfs_open(file, (O_WRONLY | O_APPEND), 0);
+        // printf("\nAppending to existing file");
+        printf("\nstor.c|stor_flush|f 2  = %d", f);
+
+        if (f < 0) {
+            // printf("\nstor.c|stor_flush|unable to open file");
+            DEBUG("[stor] _flush: unable to open file '%s'\n", file);
+
+            return -1;
+        } 
+    } else {
+        // printf("\nNew GPS log line written.");
+        save_gps_location(file, LAT, LON);
     }
+
     int n = vfs_write(f, _fsbuf, len);
     if (n < 0) {
         DEBUG("[stor] _flush: unable to write data\n");
+        printf("\nstor.c|stor_flush|unable to write data");
     }
     else if ((size_t)n != len) {
+        printf("\nstor.c|stor_flush|size written is not the given");
         DEBUG("[stor] _flush: size written is not the given\n");
+    } else {
+        // printf("\nstor.c|stor_flush|Everything seems to work");
     }
     vfs_close(f);
-}
-
-int send_data(void) {
-
-    int argc = 5;
-    char** argv = (char**) malloc(argc * sizeof(char*));
-    argv[0] = "udp";
-    argv[1] = "send";
-    argv[2] = "FE80::6014:B3FF:FEB5:F6DE";
-    argv[3] = "12345";
-    int size = 1024;
-    int res;
-    vfs_DIR* dirp = malloc(sizeof(vfs_DIR));
-    res = vfs_opendir(dirp, "/f");
-    if (res!=0) {
-        printf("ERROR OPEN %d\n", res);
-        return 1;
-    } else {
-        printf("OPEN\n");
-    }
-    vfs_dirent_t* entry = malloc(sizeof(vfs_dirent_t));
-    res = vfs_readdir(dirp, entry);
-    if (res==1) {
-        printf("READ\n");
-    }
-    while (res==1) {
-        printf("ENTRY %s\n",entry->d_name);
-        char file[100];
-        strcpy(file, "/f/");
-        strcat(file, entry->d_name);
-        int f = vfs_open(file, O_RDONLY, 0);
-        if (f < 0) {
-            DEBUG("[stor] _flush: unable to open file '%s'\n", file);
-        } else {
-            printf("OPEN %s\n", file);
-            char filename_line[100];
-            strcpy(filename_line, "filename=");
-            strcat(filename_line, entry->d_name);
-            argv[4] = filename_line;
-            udp_cmd(argc, argv);
-            int n = vfs_read(f, _fsbuf, size);
-            if (n < 0) {
-                DEBUG("[stor] _flush: unable to read data\n");
-                vfs_close(f);
-                argv[4] = "fail";
-                udp_cmd(argc, argv);
-                continue;
-            }
-            while (n>0) {
-                _fsbuf[n+1]='\0';
-                printf("DATASIZE: %u\n",strlen(_fsbuf));
-                argv[4] = _fsbuf;
-                udp_cmd(argc, argv);
-                // vfs_lseek(f,n,SEEK_CUR);
-                n = vfs_read(f, _fsbuf, size);
-            }
-            argv[4] = "close";
-            udp_cmd(argc, argv);
-            vfs_close(f);
-        }
-        res = vfs_readdir(dirp, entry);
-        if (res!=1) {
-            printf("ERROR READ %d\n", res);
-            break;
-        } else {
-            printf("READ\n");
-        }
-    }
-    argv[4] = "end";
-    udp_cmd(argc, argv);
     return 0;
 }
+
+

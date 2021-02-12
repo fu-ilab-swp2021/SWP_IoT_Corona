@@ -1,0 +1,16 @@
+version: "3.2"
+
+services:
+  
+  cwa-scanner-backend:
+    build: ./cwa-scanner-backend
+    restart: always
+    ports:
+      - "8080:80"
+     
+
+  cwa-scanner-frontend:
+    build: ./cwa-scanner-webui
+    restart: always
+    ports:
+      - "80:80"

@@ -1,0 +1,92 @@
+<div class="chart-wrapper">
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <div class="chart-container" *ngIf="!isLoading">
+    <ng-container *ngTemplateOutlet="chartTemplate"></ng-container>
+  </div>
+</div>
+<div
+  *ngIf="showIntervalSlider || showRelativeToggle"
+  class="controls-container"
+>
+  <div class="interval-slider-container" *ngIf="showIntervalSlider">
+    <h1>Interval size</h1>
+    <mat-slider
+      [formControl]="sliderFC"
+      thumbLabel
+      tickInterval="1"
+      step="5"
+      min="5"
+      max="120"
+    ></mat-slider>
+    <span>{{ sliderFC.value }} seconds</span>
+    <button
+      mat-raised-button
+      class="confirm-button"
+      color="primary"
+      (click)="changeInterval(sliderFC.value)"
+    >
+      Confirm
+    </button>
+  </div>
+  <div class="relative-toggle-container" *ngIf="showRelativeToggle">
+    <mat-slide-toggle [formControl]="relativeScaleFC">Relative time scale</mat-slide-toggle>
+  </div>
+</div>
+
+<ng-template #linechartTemplate>
+  <ngx-charts-line-chart
+    #ngx_chart
+    [scheme]="colorScheme"
+    [legend]="legend"
+    legendPosition="'below'"
+    [autoScale]="autoScale"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxis]="xAxis"
+    [xAxisTickFormatting]="formatXAxisTicks"
+    [yAxis]="yAxis"
+    [xAxisLabel]="xAxisLabel"
+    [yAxisLabel]="yAxisLabel"
+    [timeline]="timeline"
+    [results]="chartData"
+  >
+    <ng-template #seriesTooltipTemplate let-items="model">
+      <span>{{ relativeScaleFC.value ? items[0]?.name + 's' : items[0]?.name | date: "MMM d, y, HH:mm:ss" }}</span>
+      <div class="tooltip-list-item" *ngFor="let item of items">
+        <div class="tooltip-color" [style.backgroundColor]="item.color"></div>
+        <span class="tooltip-series">{{ item.series }}:</span>
+        <div class="tooltip-spacer"></div>
+        <span class="tooltip-value">{{ item.value | number }}</span>
+      </div>
+    </ng-template>
+    <ng-template #tooltipTemplate let-item="model">
+      <!-- <p>{{ item.name | date: "medium" }}</p>
+      <p>{{ item.series }}: {{ item.value | number }}</p> -->
+      <span>{{ relativeScaleFC.value ? item.name + 's' : item.name | date: "MMM d, y, HH:mm:ss" }}</span>
+      <div class="tooltip-list-item">
+        <span class="tooltip-series">{{ item.series }}:</span>
+        <div class="tooltip-spacer"></div>
+        <span class="tooltip-value">{{ item.value | number }}</span>
+      </div>
+    </ng-template>
+  </ngx-charts-line-chart>
+</ng-template>
+
+<ng-template #barchartTemplate>
+  <ngx-charts-bar-vertical
+    #ngx_chart
+    [scheme]="colorScheme"
+    [legend]="legend"
+    legendPosition="'below'"
+    [autoScale]="autoScale"
+    [showXAxisLabel]="showXAxisLabel"
+    [showYAxisLabel]="showYAxisLabel"
+    [xAxis]="xAxis"
+    [yAxis]="yAxis"
+    [xAxisLabel]="xAxisLabel"
+    [yAxisLabel]="yAxisLabel"
+    [timeline]="timeline"
+    [results]="chartData"
+  >
+  </ngx-charts-bar-vertical>
+</ng-template>

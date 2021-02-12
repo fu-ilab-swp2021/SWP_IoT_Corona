@@ -152,6 +152,13 @@ void ui_update_menu(void)
         u8g2_DrawStr(&_disp, 0, 21, "__________________");
         u8g2_DrawStr(&_disp, 0, 32, "BTN 1: GPS Mode");
         u8g2_DrawStr(&_disp, 0, 43, "BTN 2: Scanner Mode");
-        u8g2_DrawStr(&_disp, 0, 54, "BTN 3: Send Mode");
+    } while(u8g2_NextPage(&_disp));
+}
+
+void ui_error_screen(void)
+{
+    u8g2_FirstPage(&_disp);
+    do {
+        u8g2_DrawStr(&_disp, 0, 10, "SD Card Error");
     } while(u8g2_NextPage(&_disp));
 }

@@ -1,6 +1,8 @@
 <div class="upload-form">
+  <mat-checkbox labelPosition="before" [formControl]="aggFC" matTooltip="May take a long time">Preprocess aggregations*</mat-checkbox>
   <mat-form-field appearance="outline">
-    <ngx-mat-file-input [formControl]="fileControl"> </ngx-mat-file-input>
+    <ngx-mat-file-input [multiple]="true" [formControl]="fileControl"> </ngx-mat-file-input>
   </mat-form-field>
-  <button mat-raised-button color="primary" (click)="upload()">Upload</button>
+  <button *ngIf="!isLoading" mat-raised-button color="primary" (click)="upload()">Upload</button>
+  <mat-spinner diameter="40" *ngIf="isLoading"></mat-spinner>
 </div>

@@ -1,13 +1,7 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  OnInit
-} from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { HttpService } from '../services/http.service';
-import { BlePacket } from '../models/cwa-packet.model';
 import { DataService } from '../services/data.service';
+import { HttpService } from '../services/http.service';
 
 interface ChartSeries {
   show: boolean;
@@ -25,29 +19,35 @@ interface ChartSeries {
 })
 export class FileUploadComponent implements OnInit, AfterViewInit {
   fileControl = new FormControl();
-  file: File;
+  files: File[] = [];
+  aggFC = new FormControl(false);
+  isLoading = false;
 
   constructor(
     private httpService: HttpService,
-    private cdr: ChangeDetectorRef,
     private dataService: DataService
   ) {}
 
   ngOnInit(): void {
-    this.fileControl.valueChanges.subscribe((file) => {
-      this.file = file;
+    this.fileControl.valueChanges.subscribe((files) => {
+      this.files = files;
     });
   }
 
   ngAfterViewInit() {}
 
   upload() {
-    this.httpService.uploadFile(this.file).subscribe(
-      (d: BlePacket[]) => {
-        this.dataService.addDataFile(d, this.file.name);
-        this.dataService.updateDataFiles();
+    if (this.files.length < 1) {
+      return;
+    }
+    this.isLoading = true;
+    this.httpService.uploadFile(this.files, this.aggFC.value).subscribe(
+      () => {
+        this.isLoading = false;
+        this.dataService.updateFilenames();
       },
       (e) => {
+        this.isLoading = false;
         console.error(e);
       }
     );

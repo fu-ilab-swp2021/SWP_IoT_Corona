@@ -2,17 +2,16 @@
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
+    max-height: calc(100% - 145px);
+    overflow: auto;
 
     .page-card {
         min-width: 300px;
+        height: 370px;
         width: 400px;
         max-width: 400px;
         cursor: pointer;
         margin: 10px;
+        padding-bottom: 6px;
     }
-}
-
-.example-header-image {
-    background-image: url("https://material.angular.io/assets/img/examples/shiba1.jpg");
-    background-size: cover;
 }

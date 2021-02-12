@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BlePacket } from '../models/cwa-packet.model';
+import { Observable } from 'rxjs';
+import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
 import { UploadedDataItem } from './data.service';
 
 @Injectable({
@@ -9,14 +10,26 @@ import { UploadedDataItem } from './data.service';
 export class HttpService {
   constructor(private http: HttpClient) {}
 
-  uploadFile(f: File) {
+  uploadFile(files: File[], aggregate: boolean) {
     const formData = new FormData();
-    formData.append('fileKey', f, f.name);
-    return this.http.post('/api/upload-cwa-data-from-file', formData);
+    files.forEach((f, i) => {
+      formData.append('fileKey_' + i, f, f.name);
+    });
+    return this.http.post('/api/upload-cwa-data-from-file' + (aggregate ? '?aggregate=true' : ''), formData);
   }
 
-  getFilenames() {
-    return this.http.get<string[]>('/api/cwa-filenames');
+  uploadGpsFile(file: File) {
+    const formData = new FormData();
+    formData.append('fileKey', file, file.name);
+    return this.http.post('/api/upload-gps-data-from-file', formData);
+  }
+
+  deleteGpsData() {
+    return this.http.delete('/api/gps-data');
+  }
+
+  getFilenames(): Observable<DataFileInfo[]> {
+    return this.http.get<DataFileInfo[]>('/api/cwa-filenames');
   }
 
   deleteDatafile(name: string) {
@@ -29,8 +42,8 @@ export class HttpService {
     });
   }
 
-  getAggregatedData(aggregationType, filenames, options?) {
-    return this.http.post<any>('/api/aggregate-data', {
+  getAggregatedData(aggregationType, filenames, options?): Observable<AggregationPacket<any>[]> {
+    return this.http.post<AggregationPacket<any>[]>('/api/aggregate-data', {
       dataFiles: filenames,
       type: aggregationType,
       options
