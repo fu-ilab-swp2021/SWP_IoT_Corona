@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
+import { AggregationPacket, BlePacket, DataFileInfo, DevicePacket } from '../models/cwa-packet.model';
 import { UploadedDataItem } from './data.service';
 
 @Injectable({
@@ -30,6 +30,10 @@ export class HttpService {
 
   getFilenames(): Observable<DataFileInfo[]> {
     return this.http.get<DataFileInfo[]>('/api/cwa-filenames');
+  }
+
+  getDevicePackets(filename, address): Observable<DevicePacket[]> {
+    return this.http.get<DevicePacket[]>('/api/cwa-device-data/' + filename + '/' + address);
   }
 
   deleteDatafile(name: string) {

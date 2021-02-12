@@ -1,0 +1,132 @@
+<mat-table matSort [dataSource]="packetDatasource">
+  <ng-container matColumnDef="addr">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>Address</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="address-column">
+      {{ element.addr }}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="count">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>#Packets</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="numeric-column">
+      {{ element.count }}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="first">
+    <mat-header-cell mat-sort-header *matHeaderCellDef class="date-column">First</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="date-column">
+      {{ element.first * 1000 | date: "dd.MM.yy, HH:mm:ss" }}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="last">
+    <mat-header-cell mat-sort-header *matHeaderCellDef class="date-column"
+      >Last</mat-header-cell
+    >
+    <mat-cell *matCellDef="let element" class="date-column">
+      {{ element.last * 1000 | date: "dd.MM.yy, HH:mm:ss" }}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="avgRSSI">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>Avg. RSSI</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="numeric-column">
+      {{ element.avgRSSI | number: ".2-2" }}dB
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="minRSSI">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>Min. RSSI</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="numeric-column">
+      {{ element.minRSSI }}dB
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="maxRSSI">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>Max. RSSI</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="numeric-column">
+      {{ element.maxRSSI }}dB
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="cwa_count">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>#CWA packets</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="numeric-column">
+      {{ element.cwa_count }}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="avgInterval">
+    <mat-header-cell mat-sort-header *matHeaderCellDef>Avg. adv. interval</mat-header-cell>
+    <mat-cell *matCellDef="let element" class="numeric-column">
+      {{ element.avgInterval | number: ".2-3" }}s
+    </mat-cell>
+  </ng-container>
+  <mat-header-row
+    *matHeaderRowDef="
+      [
+        'addr',
+        'count',
+        'avgRSSI',
+        'first',
+        'last',
+        'minRSSI',
+        'maxRSSI',
+        'cwa_count',
+        'avgInterval'
+      ];
+      sticky: true
+    "
+  ></mat-header-row>
+  <mat-row
+    *matRowDef="
+      let row;
+      columns: [
+        'addr',
+        'count',
+        'avgRSSI',
+        'first',
+        'last',
+        'minRSSI',
+        'maxRSSI',
+        'cwa_count',
+        'avgInterval'
+      ]
+    "
+  ></mat-row>
+</mat-table>
+<div class="chart-wrapper">
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <div class="chart-container" *ngIf="!isLoading">
+    <ngx-charts-line-chart
+      #ngx_chart
+      [scheme]="colorScheme"
+      [legend]="legend"
+      legendPosition="'below'"
+      [autoScale]="autoScale"
+      [showXAxisLabel]="showXAxisLabel"
+      [showYAxisLabel]="showYAxisLabel"
+      [xAxis]="xAxis"
+      [xAxisTickFormatting]="formatXAxisTicks"
+      [yAxis]="yAxis"
+      [xAxisLabel]="xAxisLabel"
+      [yAxisLabel]="yAxisLabel"
+      [timeline]="timeline"
+      [results]="chartData"
+    >
+      <ng-template #seriesTooltipTemplate let-items="model">
+        <span>{{ items[0]?.name | date: "MMM d, y, HH:mm:ss" }}</span>
+        <div class="tooltip-list-item" *ngFor="let item of items">
+          <div class="tooltip-color" [style.backgroundColor]="item.color"></div>
+          <span class="tooltip-series">{{ item.series }}:</span>
+          <div class="tooltip-spacer"></div>
+          <span class="tooltip-value">{{ item.value | number }}</span>
+        </div>
+      </ng-template>
+      <ng-template #tooltipTemplate let-item="model">
+        <span>{{ item.name | date: "MMM d, y, HH:mm:ss" }}</span>
+        <div class="tooltip-list-item">
+          <span class="tooltip-series">{{ item.series }}:</span>
+          <div class="tooltip-spacer"></div>
+          <span class="tooltip-value">{{ item.value | number }}</span>
+        </div>
+      </ng-template>
+    </ngx-charts-line-chart>
+  </div>
+</div>
+<button (click)="onBack()" class="back-button" mat-icon-button>
+  <mat-icon> arrow_back </mat-icon>
+</button>

@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, Response
 from flask_swagger import swagger
 from flask_cors import CORS
 from .tools.adparser import ADParser
-from .tools.data_handling import aggregate, all_option_combinations, preprocess_aggregation, parse_gps_file
+from .tools.data_handling import aggregate, preprocess_aggregation, parse_gps_file, device_packets
 import numpy as np
 import json
 import shutil
@@ -317,6 +317,37 @@ class Server():
                 return jsonify(json.loads(s)), 200
             else:
                 return Response(s, mimetype="text/plain")
+        
+        @self.app.route(self.ROOT_URL_PATH+'/cwa-device-data/<filename>/<address>', methods=['GET'])
+        def getDevicePackets(filename, address):
+            """
+            Get uploaded data of one device from an uploaded file
+            ---
+            tags:
+                - CWA scanner data
+            parameters:
+                - name: filename
+                  in: path
+                  description: The name of the data
+                  required: true
+                  type: string
+                - name: address
+                  in: path
+                  description: The address of the device
+                  required: true
+                  type: string
+            produces:
+                - application/json
+                - text/plain
+            responses:
+                200:
+                    description: The requested data
+                404:
+                    description: The data was not found
+                500:
+                    description: The data could not be sent
+            """
+            return jsonify(device_packets(self.app.config, filename, address)), 200
         
         @self.app.route(self.ROOT_URL_PATH+'/cwa-data/<filename>', methods=['DELETE'])
         def deleteData(filename):
