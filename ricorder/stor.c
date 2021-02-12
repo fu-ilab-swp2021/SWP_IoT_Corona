@@ -33,11 +33,14 @@
 #include "sdcard_spi_params.h"
 
 #include "app.h"
+#include "services.h"
 
 #define ENABLE_DEBUG    (0)
 #include "debug.h"
 
 #define FILENAME_MAXLEN         (30U)
+
+extern struct position GPS_POS;
 
 /* Configure MTD device for the first SD card */
 extern sdcard_spi_t sdcard_spi_devs[ARRAY_SIZE(sdcard_spi_params)];
@@ -55,6 +58,8 @@ static vfs_mount_t flash_mount = {
     .mount_point = "/f",
     .private_data = &fs_desc,
 };
+
+uint32_t filename = 0;
 
 // #define FSBUF_SIZE          4096U      /* 4kb buffer */
 #define FSBUF_SIZE          15360U      /* 15kb buffer */
@@ -125,17 +130,25 @@ int stor_write_ln(char *line, size_t len)
     return 0;
 }
 
+void generate_filename(void) {
+    uint32_t ts, ms;
+    wallclock_now(&ts, &ms);
+    printf("\n time ts: %lu%lu", ts, ms);
+    uint32_t base = ((ts * 1000 + ms) % 86400000);
+    filename = base;
+}
+
 int stor_flush(void)
 {
     size_t len;
     char file[FILENAME_MAXLEN];
 
-    /* get filename from basetime (drop everything below hours) */
-    uint32_t ts;
-    wallclock_now(&ts, NULL);
-    printf("\n time ts: %lu", ts);
-    uint32_t base = (ts - (ts % 60)) / 1000;
-    snprintf(file, sizeof(file), "/f/%u", (unsigned)base);
+    if (filename == 0) {
+        generate_filename();
+    }
+    printf("filename: %u", (unsigned)filename);
+    snprintf(file, sizeof(file), "/f/%u", (unsigned)filename);
+    /* get filename from basetime*/
 
     /* copy buffer and clear inbuf */
     mutex_lock(&_buflock);
@@ -150,11 +163,11 @@ int stor_flush(void)
 
     /* write data to FS */
     int f = vfs_open(file, (O_WRONLY | O_CREAT | O_EXCL), 0);
-    printf("\nstor.c|stor_flush|f 1  = %d", f);
+    // printf("\nstor.c|stor_flush|f 1  = %d", f);
     if (f < 0) {
         f = vfs_open(file, (O_WRONLY | O_APPEND), 0);
         // printf("\nAppending to existing file");
-        printf("\nstor.c|stor_flush|f 2  = %d", f);
+        // printf("\nstor.c|stor_flush|f 2  = %d", f);
 
         if (f < 0) {
             // printf("\nstor.c|stor_flush|unable to open file");
@@ -164,7 +177,7 @@ int stor_flush(void)
         } 
     } else {
         // printf("\nNew GPS log line written.");
-        save_gps_location(file, LAT, LON);
+        save_gps_location(file, GPS_POS.latitude, GPS_POS.longitude);
     }
 
     int n = vfs_write(f, _fsbuf, len);

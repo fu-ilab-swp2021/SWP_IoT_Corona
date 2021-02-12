@@ -1,4 +1,5 @@
 #include "services.h"
+#include "app.h"
 
 // Struct to save longitude and latitude
 struct position GPS_POS = {
@@ -135,6 +136,7 @@ static int position_uuid_callback (
 	BLE_UUID16_DECLARE(GATT_LONGITUDE_UUID)
 	)==0){
     pos = &GPS_POS.longitude;
+    generate_filename();
   } else {
   	return 1;
   }

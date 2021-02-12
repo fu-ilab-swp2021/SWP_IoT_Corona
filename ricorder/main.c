@@ -30,8 +30,8 @@
 #include "app.h"
 
 #include "msg.h"
-#include "nimble_netif_conn.h"
-#include "nimble_netif.h"
+// #include "nimble_netif_conn.h"
+// #include "nimble_netif.h"
 #include "shell_commands.h"
 #include "services.h"
 
