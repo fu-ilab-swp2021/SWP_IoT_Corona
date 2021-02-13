@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { AggregationPacket, BlePacket, DataFileInfo } from '../models/cwa-packet.model';
+import { AggregationPacket, BlePacket, DataFileInfo, DevicePacket } from '../models/cwa-packet.model';
 import { HttpService } from './http.service';
 
 export enum AGGREGATION_TYPES {
@@ -102,5 +102,9 @@ export class DataService {
         only_cwa: this.onlyCwaFC.value
       }
     );
+  }
+
+  getDevicePackets(filename, address): Observable<DevicePacket[]> {
+    return this.httpService.getDevicePackets(filename, address);
   }
 }

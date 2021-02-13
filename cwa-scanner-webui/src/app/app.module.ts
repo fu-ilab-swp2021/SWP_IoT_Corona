@@ -34,6 +34,7 @@ import { GpsUploadDialogComponent } from './gps-upload/gps-upload-dialog.compone
 import { GpsUploadComponent } from './gps-upload/gps-upload.component';
 import { HomeComponent } from './home/home.component';
 import { AvgRssiLinechartComponent } from './pages/avg-rssi-linechart/avg-rssi-linechart.component';
+import { CwaShareLinechartComponent } from './pages/cwa-share-linechart/cwa-share-linechart.component';
 import { DeviceTableComponent } from './pages/device-table/device-table.component';
 import { DpmLinechartComponent } from './pages/dpm-linechart/dpm-linechart.component';
 import { MapComponent } from './pages/map-timeline/map-timeline.component';
@@ -41,6 +42,7 @@ import { PpmLinechartComponent } from './pages/ppm-linechart/ppm-linechart.compo
 import { RssiDistributionComponent } from './pages/rssi-distribution/rssi-distribution.component';
 import { RssiStackedLinechartComponent } from './pages/rssi-stacked-linechart/rssi-stacked-linechart.component';
 import { SwaggerUiComponent } from './swagger-ui/swagger-ui.component';
+import { DeviceLinechartComponent } from './pages/device-table/device-linechart/device-linechart.component';
 
 @NgModule({
   declarations: [
@@ -59,6 +61,8 @@ import { SwaggerUiComponent } from './swagger-ui/swagger-ui.component';
     GpsUploadComponent,
     GpsUploadDialogComponent,
     DeviceTableComponent,
+    CwaShareLinechartComponent,
+    DeviceLinechartComponent
   ],
   imports: [
     BrowserModule,

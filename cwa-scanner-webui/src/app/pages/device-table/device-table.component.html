@@ -2,13 +2,15 @@
   <mat-accordion class="tables-accordion" multi>
     <mat-expansion-panel
       class="table-expansion-panel"
-      *ngFor="let packet of data; trackBy:identify"
+      *ngFor="let packet of data; trackBy: identify"
     >
       <mat-expansion-panel-header class="table-expansion-panel-header">
         <mat-panel-title>{{ packet.filename }}</mat-panel-title>
       </mat-expansion-panel-header>
       <div class="table-expansion-panel-body">
-        <div class="table-container">
+        <div
+          class="table-container" [ngClass]="{ hide: selectedAddresses.has(packet.filename) }"
+        >
           <mat-table
             [dataSource]="dataSources.get(packet.filename)"
             matSort
@@ -18,7 +20,11 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header
                 >Address</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="address-column">
+              <mat-cell
+                *matCellDef="let element"
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                class="address-column"
+              >
                 {{ element.addr }}
               </mat-cell>
             </ng-container>
@@ -26,16 +32,12 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header
                 >#Packets</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="numeric-column">
-                {{ element.count }}
-              </mat-cell>
-            </ng-container>
-            <ng-container matColumnDef="avgRSSI">
-              <mat-header-cell *matHeaderCellDef mat-sort-header
-                >Avg. RSSI</mat-header-cell
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="numeric-column"
               >
-              <mat-cell *matCellDef="let element" class="numeric-column">
-                {{ element.avgRSSI | number: ".2-2" }}dB
+                {{ element.count }}
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="first">
@@ -45,7 +47,11 @@
                 mat-sort-header
                 >First</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="date-column">
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="date-column"
+              >
                 {{ element.first * 1000 | date: "dd.MM.yy, HH:mm:ss" }}
               </mat-cell>
             </ng-container>
@@ -56,15 +62,35 @@
                 mat-sort-header
                 >Last</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="date-column">
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="date-column"
+              >
                 {{ element.last * 1000 | date: "dd.MM.yy, HH:mm:ss" }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="avgRSSI">
+              <mat-header-cell *matHeaderCellDef mat-sort-header
+                >Avg. RSSI</mat-header-cell
+              >
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="numeric-column"
+              >
+                {{ element.avgRSSI | number: ".2-2" }}dB
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="minRSSI">
               <mat-header-cell *matHeaderCellDef mat-sort-header
                 >Min. RSSI</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="numeric-column">
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="numeric-column"
+              >
                 {{ element.minRSSI }}dB
               </mat-cell>
             </ng-container>
@@ -72,7 +98,11 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header
                 >Max. RSSI</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="numeric-column">
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="numeric-column"
+              >
                 {{ element.maxRSSI }}dB
               </mat-cell>
             </ng-container>
@@ -80,7 +110,11 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header
                 >#CWA packets</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="numeric-column">
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="numeric-column"
+              >
                 {{ element.cwa_count }}
               </mat-cell>
             </ng-container>
@@ -88,7 +122,11 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header
                 >Avg. adv. interval</mat-header-cell
               >
-              <mat-cell *matCellDef="let element" class="numeric-column">
+              <mat-cell
+                (click)="selectedAddresses.set(packet.filename, element.addr)"
+                *matCellDef="let element"
+                class="numeric-column"
+              >
                 {{ element.avgInterval | number: ".2-3" }}s
               </mat-cell>
             </ng-container>
@@ -131,6 +169,13 @@
             [pageSizeOptions]="[5, 10, 15, 50, 100]"
           ></mat-paginator>
         </div>
+        <app-device-linechart
+          *ngIf="selectedAddresses.get(packet.filename)"
+          [filename]="packet.filename"
+          [address]="selectedAddresses.get(packet.filename)"
+          [packet]="getDevicePacket(packet.filename)"
+          (back)="deselectDevice(packet.filename)"
+        ></app-device-linechart>
       </div>
     </mat-expansion-panel>
   </mat-accordion>

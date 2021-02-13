@@ -23,6 +23,9 @@ export interface PpmPacket {
     non_cwa: number;
   };
 }
+export interface CwaSharePacket {
+  [time: string]: number;
+}
 export interface DpmPacket {
   [time: string]: number;
 }
@@ -77,4 +80,9 @@ export interface DeviceInfo {
   count: number;
   cwa_count: number;
   sumRSSI: number;
+}
+
+export interface DevicePacket {
+  time: number;
+  rssi: number;
 }

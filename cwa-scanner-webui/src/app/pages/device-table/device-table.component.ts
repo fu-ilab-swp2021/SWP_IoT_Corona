@@ -24,6 +24,7 @@ import { AGGREGATION_TYPES, DataService } from '../../services/data.service';
 export class DeviceTableComponent implements OnInit, AfterViewInit, OnDestroy {
   aggregationType = AGGREGATION_TYPES.device_info;
   dataSources = new Map<string, MatTableDataSource<DeviceInfo>>();
+  selectedAddresses = new Map<string, string>();
   @ViewChildren(MatSort) sorts!: QueryList<MatSort>;
   @ViewChildren(MatPaginator) paginators: QueryList<MatPaginator>;
   unfilteredData: AggregationPacket<DeviceInfo[]>[] = [];
@@ -48,6 +49,9 @@ export class DeviceTableComponent implements OnInit, AfterViewInit, OnDestroy {
         const d = this.unfilteredData.find((df) => df.filename === f.filename);
         if (d) {
           d.visisble = f.visisble;
+          if (!f.visisble) {
+            this.selectedAddresses.delete(f.filename);
+          }
           this.buildTables();
         }
       })
@@ -78,6 +82,25 @@ export class DeviceTableComponent implements OnInit, AfterViewInit, OnDestroy {
       const dataSource = new MatTableDataSource<DeviceInfo>();
       dataSource.data = p.data;
       dataSource.sort = this.sorts.get(i);
+      const tempSort = dataSource.sortData;
+      dataSource.sortData = (data, sort) => {
+        if (sort.active === 'avgInterval') {
+          return data.sort((a, b) => {
+            if (!a.avgInterval && !b.avgInterval) {
+              return 0;
+            }
+            if (!a.avgInterval && b.avgInterval !== null) {
+              return 1;
+            }
+            if (!b.avgInterval && a.avgInterval !== null) {
+              return -1;
+            }
+            return sort.direction === 'asc' ? a.avgInterval - b.avgInterval : b.avgInterval - a.avgInterval;
+          });
+        } else {
+          return tempSort(data, sort);
+        }
+      };
       dataSource.paginator = this.paginators.get(i);
       dataSource.sort.sort({
         id: 'count',
@@ -124,5 +147,15 @@ export class DeviceTableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   identify(index, item) {
     return item.filename;
+  }
+
+  deselectDevice(filename) {
+    this.selectedAddresses.delete(filename);
+  }
+
+  getDevicePacket(filename) {
+    return this.data
+      .find((d) => d.filename === filename)
+      .data.find((p) => p.addr === this.selectedAddresses.get(filename));
   }
 }

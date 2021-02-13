@@ -334,3 +334,14 @@ def add_location(fileData, paths, filename):
     else:
         location = None
     fileData["location"] = location
+
+def device_packets(paths, filename, address):
+    ps = readData(paths['JSON_PATH'], filename=filename)
+    data = []
+    for p in ps:
+        if p["addr"] == address:
+            data.append({
+                "time": p["time"],
+                "rssi": p["rssi"]
+            })
+    return data

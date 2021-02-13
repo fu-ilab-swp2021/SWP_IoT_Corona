@@ -29,7 +29,9 @@
     </button>
   </div>
   <div class="relative-toggle-container" *ngIf="showRelativeToggle">
-    <mat-slide-toggle [formControl]="relativeScaleFC">Relative time scale</mat-slide-toggle>
+    <mat-slide-toggle [formControl]="relativeScaleFC"
+      >Relative time scale</mat-slide-toggle
+    >
   </div>
 </div>
 
@@ -51,7 +53,11 @@
     [results]="chartData"
   >
     <ng-template #seriesTooltipTemplate let-items="model">
-      <span>{{ relativeScaleFC.value ? items[0]?.name + 's' : items[0]?.name | date: "MMM d, y, HH:mm:ss" }}</span>
+      <span>{{
+        relativeScaleFC.value
+          ? items[0]?.name + "s"
+          : (items[0]?.name | date: "MMM d, y, HH:mm:ss")
+      }}</span>
       <div class="tooltip-list-item" *ngFor="let item of items">
         <div class="tooltip-color" [style.backgroundColor]="item.color"></div>
         <span class="tooltip-series">{{ item.series }}:</span>
@@ -62,7 +68,11 @@
     <ng-template #tooltipTemplate let-item="model">
       <!-- <p>{{ item.name | date: "medium" }}</p>
       <p>{{ item.series }}: {{ item.value | number }}</p> -->
-      <span>{{ relativeScaleFC.value ? item.name + 's' : item.name | date: "MMM d, y, HH:mm:ss" }}</span>
+      <span>{{
+        relativeScaleFC.value
+          ? item.name + "s"
+          : (item.name | date: "MMM d, y, HH:mm:ss")
+      }}</span>
       <div class="tooltip-list-item">
         <span class="tooltip-series">{{ item.series }}:</span>
         <div class="tooltip-spacer"></div>
