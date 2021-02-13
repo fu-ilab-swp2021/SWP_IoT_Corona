@@ -66,6 +66,7 @@ void ui_init(void);
 void ui_boot_msg(const char *msg);
 void ui_update_scanner(void);
 void ui_update_gps(void);
+void ui_gps_received(void);
 void ui_update_menu(void);
 void ui_error_screen(void);
 

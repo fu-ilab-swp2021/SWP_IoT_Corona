@@ -146,7 +146,7 @@ int stor_flush(void)
     if (filename == 0) {
         generate_filename();
     }
-    printf("filename: %u", (unsigned)filename);
+    // printf("\nfilename: %u", (unsigned)filename);
     snprintf(file, sizeof(file), "/f/%u", (unsigned)filename);
     /* get filename from basetime*/
 

@@ -134,6 +134,16 @@ void ui_update_scanner(void)
     } while(u8g2_NextPage(&_disp));
 }
 
+void ui_gps_received(void)
+{
+    u8g2_FirstPage(&_disp);
+    do {
+        u8g2_DrawStr(&_disp, 0, 10, "GPS received!");
+        u8g2_DrawStr(&_disp, 0, 21, "__________________");
+        u8g2_DrawStr(&_disp, 0, 32, "BTN 4: Menu");
+    } while(u8g2_NextPage(&_disp));
+}
+
 void ui_update_gps(void)
 {
     u8g2_FirstPage(&_disp);

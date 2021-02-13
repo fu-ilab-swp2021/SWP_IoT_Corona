@@ -136,6 +136,7 @@ static int position_uuid_callback (
 	BLE_UUID16_DECLARE(GATT_LONGITUDE_UUID)
 	)==0){
     pos = &GPS_POS.longitude;
+    ui_gps_received();
     generate_filename();
   } else {
   	return 1;
