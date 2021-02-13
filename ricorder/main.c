@@ -29,6 +29,16 @@
 
 #include "app.h"
 
+#include "msg.h"
+// #include "nimble_netif_conn.h"
+// #include "nimble_netif.h"
+#include "shell_commands.h"
+#include "services.h"
+
+extern int _nimble_netif_handler(int argc, char **argv);
+
+#define UPDATE_DELAY (1000 * US_PER_MS)
+
 // Additional imports for Button handling
 #include "board.h"
 #include "board_common.h"
@@ -113,6 +123,7 @@ void set_menu_mode(void *arg)
 
 int main(void)
 {
+    init_service();
     /* run the shell if compiled in */
     #if IS_USED(MODULE_SHELL)
         _start_shell();

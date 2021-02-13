@@ -31,8 +31,8 @@ extern "C" {
 #define SCANNER_ITVL        BLE_GAP_SCAN_ITVL_MS(60)
 #define SCANNER_WIN         BLE_GAP_SCAN_WIN_MS(60)
 
-#define LAT 52.123456
-#define LON 13.123456
+// #define LAT 52.123456
+// #define LON 13.123456
 
 
 typedef struct {
@@ -59,12 +59,14 @@ void scanner_getcount(scanner_stats_t *stats);
 int stor_init(void);
 int stor_write_ln(char *line, size_t len);
 int stor_flush(void);
+void generate_filename(void);
 void save_gps_location(char *file_name, double latitude, double longitude);
 
 void ui_init(void);
 void ui_boot_msg(const char *msg);
 void ui_update_scanner(void);
 void ui_update_gps(void);
+void ui_gps_received(void);
 void ui_update_menu(void);
 void ui_error_screen(void);
 

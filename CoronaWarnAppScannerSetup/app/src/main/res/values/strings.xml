@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Corona Warn App Scanner Setup</string>
+    <string name="scanner_uuid">UUID not set</string>
+    <string name="scanner_status">Status is unknown</string>
+</resources>

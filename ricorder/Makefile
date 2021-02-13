@@ -12,6 +12,8 @@ TERM ?= 1
 # define dependencies
 # BLE
 USEPKG += nimble
+USEMODULE += nimble_svc_gap
+USEMODULE += nimble_svc_gatt
 USEMODULE += nimble_scanner
 USEMODULE += bluetil_addr
 USEMODULE += bluetil_ad
