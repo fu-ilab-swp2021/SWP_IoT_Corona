@@ -12,7 +12,8 @@ export enum AGGREGATION_TYPES {
   rssi_stacked = 'rssi_stacked_per_minute',
   avg_rssi = 'avg_rssi_per_minute',
   total_values = 'total_values',
-  device_info = 'device_info'
+  device_info = 'device_info',
+  device_share = 'device_share',
 }
 export interface UploadedDataItem {
   data: BlePacket[];

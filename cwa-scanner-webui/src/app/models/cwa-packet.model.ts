@@ -29,6 +29,13 @@ export interface CwaSharePacket {
 export interface DpmPacket {
   [time: string]: number;
 }
+
+export interface DeviceSharePacket {
+  [time: string]: {
+    cwa: number;
+    not_cwa: number;
+  };
+}
 export interface RssiDistPacket {
   [rssiRange: string]: number;
 }

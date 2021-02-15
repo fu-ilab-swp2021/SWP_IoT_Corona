@@ -6,6 +6,7 @@ import { RssiStackedLinechartComponent } from './rssi-stacked-linechart/rssi-sta
 import { AvgRssiLinechartComponent } from './avg-rssi-linechart/avg-rssi-linechart.component';
 import { DeviceTableComponent } from './device-table/device-table.component';
 import { CwaShareLinechartComponent } from './cwa-share-linechart/cwa-share-linechart.component';
+import { DeviceShareComponent } from './device-share/device-share.component';
 
 export const PAGES = [
   {
@@ -42,6 +43,13 @@ export const PAGES = [
     title: '#Devices per interval',
     previewPath: 'assets/img/dpm_linechart_preview.png',
     component: DpmLinechartComponent
+  },
+  {
+    path: 'device-share',
+    icon: 'show_chart',
+    title: 'Share of CWA devices',
+    previewPath: 'assets/img/dpm_linechart_preview.png',
+    component: DeviceShareComponent
   },
   {
     path: 'rssi-distribution',

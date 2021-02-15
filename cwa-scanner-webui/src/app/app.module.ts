@@ -43,6 +43,7 @@ import { RssiDistributionComponent } from './pages/rssi-distribution/rssi-distri
 import { RssiStackedLinechartComponent } from './pages/rssi-stacked-linechart/rssi-stacked-linechart.component';
 import { SwaggerUiComponent } from './swagger-ui/swagger-ui.component';
 import { DeviceLinechartComponent } from './pages/device-table/device-linechart/device-linechart.component';
+import { DeviceShareComponent } from './pages/device-share/device-share.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,8 @@ import { DeviceLinechartComponent } from './pages/device-table/device-linechart/
     GpsUploadDialogComponent,
     DeviceTableComponent,
     CwaShareLinechartComponent,
-    DeviceLinechartComponent
+    DeviceLinechartComponent,
+    DeviceShareComponent
   ],
   imports: [
     BrowserModule,

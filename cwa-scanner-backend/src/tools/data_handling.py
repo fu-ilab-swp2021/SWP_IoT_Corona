@@ -193,6 +193,30 @@ def devices_per_minute(ps, options=None):
             dpm1[t] += 1
     return dpm1
 
+def device_share(ps, options=None):
+    interval = options["interval"] if options is not None else STANDARD_INTERVAL
+    dpm1 = {}
+    dpm2 = {}
+    for p in ps:
+        t = int(p["time"] - p["time"]%interval)
+        if t not in dpm1:
+            dpm1[t] = {
+                "cwa": 1 if isCWA(p) else 0,
+                "not_cwa": 0 if isCWA(p) else 1
+            }
+            dpm2[t] = {
+                "cwa": [p["addr"]] if isCWA(p) else [],
+                "not_cwa": [] if isCWA(p) else [p["addr"]]
+            }
+        if p["addr"] not in dpm2[t]["cwa"] and p["addr"] not in dpm2[t]["not_cwa"]:
+            if isCWA(p):
+                dpm2[t]["cwa"].append(p["addr"])
+                dpm1[t]["cwa"] += 1
+            else:
+                dpm2[t]["not_cwa"].append(p["addr"])
+                dpm1[t]["not_cwa"] += 1
+    return dpm1
+
 def device_info(ps, options=None):
     devices = []
     d_info = []
@@ -291,7 +315,8 @@ aggregation_function_mapping = {
     "rssi_stacked_per_minute": rssi_stacked_per_minute,
     "avg_rssi_per_minute": avg_rssi_per_minute,
     "total_values": total_values,
-    "device_info": device_info
+    "device_info": device_info,
+    "device_share": device_share,
 }
 
 aggregation_option_mapping = {
@@ -301,7 +326,8 @@ aggregation_option_mapping = {
     "rssi_stacked_per_minute": ['only_cwa', 'interval'],
     "avg_rssi_per_minute": ['only_cwa', 'interval'],
     "total_values": ['only_cwa'],
-    "device_info": ['only_cwa']
+    "device_info": ['only_cwa'],
+    "device_share": ['interval']
 }
 
 def parse_gps_file(content):
