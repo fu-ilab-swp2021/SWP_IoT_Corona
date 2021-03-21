@@ -202,7 +202,7 @@ int main(void)
         case STATE_SCANNER:
             if (STATE_SWITCHED) {
                 if (nimble_scanner_status() == NIMBLE_SCANNER_STOPPED) {
-                    int scanner_start = nimble_scanner_start();
+                    nimble_scanner_start();
                 }
 
                 STATE_SWITCHED = 0;
