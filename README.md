@@ -1,40 +1,22 @@
-# Softwareprojekt Corona-Warn-App #
+# Software project Corona-Warn-App #
 
-Das Repository enthält den aktuellen Projektstand der Gruppe _Corona Warn-App Scanner_
+## Setup ##
 
-## Hardware ##
-
-Das Projekt nutzt zwei verschiedene Plattformen, auf denen der Scanner gebaut werden soll:
-
-* nrf52840
-  - NimBLE stack implementiert
-  - ARM-Toolchain
-* ESP32
-  - BLE/Wifi support
-  - ESP-Toolchain
-
-Als Peripheriegeräte werden ein SD-Kartenleser und ein kleines Display an die Boards angeschlossen.
-
-## Benutzung ##
-
-Um das Projekt zu klonen sollte
-`git clone --recurse-submodules REPOSITORY` genutzt werden, um den RIOT-OS Ordner
-heruenterzuladen. Alternativ kann mit `git submodule init` die lokale
-Konfigurationsdatei initialisiert, und mit `git submodule update` die Daten herunter
-geladen werden.
+When cloning the repository, you should use
+`git clone --recurse-submodules <REPOSITORY URL>`, so that the RIOT submodule is cloned as well. Alternatively, you can use `git submodule init` and `git submodule update`.
 
 ## Build ##
 
 ### Scanner ###
-Voraussetzung: [Vagrant](https://www.vagrantup.com/downloads) installiert.
+Prerequisite: [Vagrant](https://www.vagrantup.com/downloads) is installed.
 * ```
   vagrant up
   ```
 * ```
   vagrant ssh
   ```
-* Beim ersten mal:
-  - [JLink](https://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack) für Linux, DEB installer, Version >=6.80 unter `J-Link Software and Documentation Pack` herunterladen. Installieren mit
+* First time:
+  - Download [JLink](https://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack) for Linux, DEB installer, Version >=6.80 at `J-Link Software and Documentation Pack`. Install using
     ```
     sudo dpkg -i /path/to/jlink_xxx.deb
     ```
@@ -44,7 +26,7 @@ Voraussetzung: [Vagrant](https://www.vagrantup.com/downloads) installiert.
 * ```
   cd SWP_IoT_Corona/ricorder
   ```
-* Nordic-Board per USB anschließen und anschalten
+* Connect Nordic-Board via USB and turn it on.
 * ```
   make all
   ```
@@ -54,14 +36,21 @@ Voraussetzung: [Vagrant](https://www.vagrantup.com/downloads) installiert.
 
 ### Web-UI
 
-Voraussetzung: [Python](https://www.python.org/downloads/release/python-391/) und [NPM/NodeJS](https://nodejs.org/en/download/) installiert.
-* Beim ersten mal:
-  - Angular CLI installieren.
+#### With Docker
+
+* `docker-compose up`
+* Visit [http://localhost:80](http://localhost:80) in your browser.
+
+#### Without Docker
+
+Prerequisite: [Python](https://www.python.org/downloads/release/python-391/) and [NPM/NodeJS](https://nodejs.org/en/download/) are installed.
+* First time:
+  - Install Angular CLI.
     ```
     npm install -g @angular/cli
     npm install
     ```
-  - Python dependencies installieren
+  - Install Python dependencies
     ```
     pip3 install -r cwa-scanner-backend/dependencies 
     ```
@@ -71,16 +60,11 @@ Voraussetzung: [Python](https://www.python.org/downloads/release/python-391/) un
 * ```
   python3 main.py
   ```
-* Zweites Terminal öffnen
+* Open second terminal
 * ```
   cd cwa-scanner-webui
   ```
 * ```
   ng serve
   ```
-* Im Browser [http://localhost:4200](http://localhost:4200) öffnen
-* Log-Datei von der SD-Karte hochladen und mit `Upload` bestätigen.
-* Es sollte sich eine Grafik öffnen
-## Lizenz ##
-
-Keine Ahnung? RIOT nutzt LGPL, glaube ich. Vielleicht können wir da einfach mal nachfragen.
+* Visit [http://localhost:4200](http://localhost:4200) in your browser.

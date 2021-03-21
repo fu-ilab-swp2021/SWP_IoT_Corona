@@ -64,87 +64,63 @@ with:
 ## Hardware
 
 The first prototype is build from the following components:
-- [particle-xenon](https://docs.particle.io/datasheets/discontinued/xenon-datasheet/) (nrf52840 SoC including BLE radio and antenna)
+- [NRF52DK](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK)
 - RTC module (DS3231) incl. CR1220 backup battery
-- 0.92" OLED display (SSD1306, 128x32)
-- Arduino SD card module
+- 0.96" OLED display (SSD1306, 128x64)
+- SD card reader module (SPI)
 - SD card
 - a couple of jumper wires
 - USB power bank
 
-![Prototype](img/hw_v1.jpg)
+![Prototype](img/ricorder_setup.jpg)
 
 **Pin Mapping:**
 
-![ricorder Schmematics](img/ricorder_schem.svg)
+![ricorder Schmematics](img/ricorder_pin_schema.svg)
 
 SD-Card Adapter:
 ```
-module  board   CPU
-VCC     3V3     -
-GND     GND     -
-MOSI    D12     P1.13
-MISO    D11     P1.14
-SCK     D13     P1.15
-CS      A5      P0.31
+module  board
+VCC     VDD
+GND     GND
+MOSI    P0.23
+MISO    P0.24
+SCK     P0.25
+CS      P0.22
 ```
 
 RTC (DS3231):
 ```
-module  board   CPU
-VCC     3V3     -
-GND     GND     -
-SCL     SCL     P0.27
-SDA     SDA     P0.26
+module  board
+VCC     VDD
+GND     GND
+SCL     P0.27
+SDA     P0.26
 ```
 
 OLED Display (SSD1306):
 ```
-module  board   CPU
-VCC     3V3     -
-GND     GND     -
-SCL     SCL     P0.27
-SDA     SDA     P0.26
+module  board
+VCC     VDD
+GND     GND
+SCL     P0.27
+SDA     P0.26
 ```
 
 
 ## Software
 
-The firmware of the scanner is based on RIOT. It is located in the `/app`
-directory of this repository.
+The firmware of the scanner is based on RIOT.
 
 The firmware application is structured into the following modules:
 - `stor`: storage -> initializing and writing to the SD card
 - `ui`: user interface -> initializing and feeding the OLED display
 - `wallclock`: time keeping -> initializing and querying the RTC module
-- `nimble_scanner` (part of RIOT): control NimBLE to do the actual BLE scanning
+- `scanner` (part of RIOT): control NimBLE to do the actual BLE scanning
+- `modi`: functionality of the different modes of the application
+- `services`: a GATT server that can receive GPS location data
 - `main`: glue all the modules together and run a low-prio thread that triggers
           updating the UI and writing the scan buffer to the SD card
-
-
-## Tooling
-
-The `/tools` directory of this repository contains some Python scripts that can
-be used for analyzing the recorded log files. All of the scripts require a list
-of logfiles as input, e.g.
-`python3 join.py PATH/TO/YOUR/LOGS/1603717 PATH/TO/YOUR/LOGS/1603810`
-or `python3 join.py PATH/TO/YOUR/LOGS/*`
-
-The following scripts can be used:
-- `join.py`: reads all given logfiles and dumps their output to STDIO. Simply
-             pipe the output to a file and that file then contains the content
-             of all input logfiles.
-- `filter_cwa.py`: same as `join.py`, except that only the output from the
-                   Corona-Warn-App is printed to STDIO. Use e.g.
-                   `python3 filter_cwa.py YOUR/LOGS/* | wc -l` to get a quick
-                   idea about the numbers of recorded Corona-Warn-App packets...
-- `filter_noncwa.py`: outputs all entries in the given logfiles that are NOT
-                      sent by the Corona-Warn-App
-- `compress.py`: dumps only new packets to STDIO while stripping duplicates.
-                 A duplicate is a packet packets of which the address type,
-                 address, and payload are identical to an entry already recorded
-                 in the logs.
-- `plt_devices.py`: plots the number of recorded packets per time interval
 
 ## Setting the time
 

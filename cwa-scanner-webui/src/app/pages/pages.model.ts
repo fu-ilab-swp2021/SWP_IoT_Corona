@@ -48,8 +48,15 @@ export const PAGES = [
     path: 'device-share',
     icon: 'show_chart',
     title: 'Share of CWA devices',
-    previewPath: 'assets/img/dpm_linechart_preview.png',
+    previewPath: 'assets/img/device_share_preview.png',
     component: DeviceShareComponent
+  },
+  {
+    path: 'avg-rssi-linechart',
+    icon: 'show_chart',
+    title: 'Average RSSI value per interval',
+    previewPath: 'assets/img/avg_rssi_linechart_preview.png',
+    component: AvgRssiLinechartComponent
   },
   {
     path: 'rssi-distribution',
@@ -64,12 +71,5 @@ export const PAGES = [
     title: '#RSSI ranges per interval',
     previewPath: 'assets/img/rssi_stacked_linechart_preview.png',
     component: RssiStackedLinechartComponent
-  },
-  {
-    path: 'avg-rssi-linechart',
-    icon: 'show_chart',
-    title: 'Average RSSI value per interval',
-    previewPath: 'assets/img/avg_rssi_linechart_preview.png',
-    component: AvgRssiLinechartComponent
   },
 ];
