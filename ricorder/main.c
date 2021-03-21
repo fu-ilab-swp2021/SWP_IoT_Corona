@@ -30,8 +30,6 @@
 #include "app.h"
 
 #include "msg.h"
-// #include "nimble_netif_conn.h"
-// #include "nimble_netif.h"
 #include "shell_commands.h"
 #include "services.h"
 
@@ -136,13 +134,8 @@ int main(void)
 
     int res;
 
-
-    printf("\n\nThis should be the first print");
-
     /* start user interface */
     ui_init();
-
-    printf("\n\nAfter UI init\n");
 
     /* initialize the wallclock (RTC) */
     res = wallclock_init();
@@ -180,11 +173,7 @@ int main(void)
         ui_boot_msg("BLE:       OK");
     }
 
-
-    // Dummy longitudes and latitudes (Berlin coordinates)
-    // static float lon = 52.520008;
-    // static float lat = 13.404954;
-
+// Initialize buttons 
 #if defined(MODULE_PERIPH_GPIO_IRQ) && defined(BTN0_PIN) && defined(BTN1_PIN) && defined(BTN2_PIN) && defined(BTN3_PIN)
     gpio_init_int(BTN0_PIN, BTN0_MODE, GPIO_BOTH, set_gps_mode, NULL);
     gpio_init_int(BTN1_PIN, BTN1_MODE, GPIO_BOTH, set_scanner_mode, NULL);
@@ -194,10 +183,7 @@ int main(void)
     xtimer_ticks32_t last_wakeup = xtimer_now();
     while(1)
     {
-        printf("\n\n\n________Current State: %d _______________", current_state);
-        // printf("\nNimble Scanner Status: %d", nimble_scanner_status());
-        // nimble_scanner_stop();
-
+  
         switch (current_state)
         {
 
@@ -217,7 +203,6 @@ int main(void)
             if (STATE_SWITCHED) {
                 if (nimble_scanner_status() == NIMBLE_SCANNER_STOPPED) {
                     int scanner_start = nimble_scanner_start();
-                    printf("\n\nmain.c|STATE_SCANNER|nimble_scanner_start_return: %d", scanner_start);
                 }
 
                 STATE_SWITCHED = 0;
@@ -242,15 +227,6 @@ int main(void)
             printf("\nNo mode selected");
             xtimer_sleep(1);
         }
-
-        // xtimer_sleep(5);
-
-        // printf("\nBTN0: %d", gpio_read(BTN0_PIN));
-        // printf("\nBTN1: %d", gpio_read(BTN1_PIN));
-        // printf("\nBTN3: %d", gpio_read(BTN3_PIN));
-
     }
-
-
     return 0;
 }
